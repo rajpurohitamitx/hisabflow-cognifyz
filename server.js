@@ -14,6 +14,7 @@ const authRoutes = require('./routes/auth');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -23,6 +24,8 @@ app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
+
+app.locals.fmtDateTime = (d) => new Date(d).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
 
 app.use((req, res, next) => {
   res.locals.currentPath = req.path;

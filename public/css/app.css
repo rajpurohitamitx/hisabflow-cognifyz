@@ -52,3 +52,11 @@ a,.btn,.nav-link,.panel-card,.stat-card,.follow-row,.mini-card,.form-control,.fo
 .follow-row:hover{background:#fafcf9}
 .btn:focus-visible,.nav-link:focus-visible,a:focus-visible{outline:2px solid #78a58e;outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* footer blends into the page */
+.app-footer{background:transparent!important;border:0!important;margin-top:24px;padding:20px 0 28px;text-align:center;color:#8a948d;font-size:.82rem}
+.app-footer .container-fluid{justify-content:center!important}
+.auth-shell .app-footer,.landing-shell + .app-footer{display:none}
+.welcome-bar{height:4px;background:#e4ece3;border-radius:4px;overflow:hidden;margin:22px auto 0;max-width:220px}
+.welcome-bar span{display:block;height:100%;background:var(--green);width:0;animation:hf-fill 2.5s linear forwards}
+@keyframes hf-fill{to{width:100%}}
