@@ -32,13 +32,15 @@ app.use((req, res, next) => {
   next();
 });
 
+['/login', '/signin'].forEach((p) => app.get(p, (req, res) => res.redirect('/auth/login')));
+['/register', '/signup'].forEach((p) => app.get(p, (req, res) => res.redirect('/auth/register')));
 app.use('/auth', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/', webRoutes);
 
 app.use((req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Route not found' });
-  res.status(404).render('error', { title: 'Page not found', message: 'The page you requested does not exist.' });
+  res.status(404).render('error', { title: 'Page not found', message: `We couldn't find ${req.path}. Check the address or go back to your shop.` });
 });
 
 app.use((err, req, res, next) => {
