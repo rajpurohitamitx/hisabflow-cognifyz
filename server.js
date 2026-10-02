@@ -36,6 +36,8 @@ app.use((req, res, next) => {
 ['/register', '/signup'].forEach((p) => app.get(p, (req, res) => res.redirect('/auth/register')));
 // old bookmark / cached redirect safety: /welcome simply goes to the dashboard
 app.get('/welcome', (req, res) => res.redirect('/dashboard'));
+// If a browser ever re-sends a form POST to one of these pages (307 redirect), send it to the page as a normal GET.
+app.post(['/dashboard', '/welcome', '/'], (req, res) => res.redirect(303, '/dashboard'));
 app.use('/auth', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/', webRoutes);

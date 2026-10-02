@@ -30,7 +30,7 @@ router.post('/register', async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 12);
     const shop = await Shop.create({ name: shopName, ownerName, email, passwordHash });
     res.cookie('hisabflow_token', signShop(shop), cookieOptions());
-    res.redirect('/dashboard');
+    res.redirect(303, '/dashboard');
   } catch (err) {
     console.error('[register]', err.message);
     res.status(500).render('auth/register', { title: 'Create shop', error: 'Could not create the account. Please try again.' });
@@ -46,13 +46,13 @@ router.post('/login', async (req, res) => {
       return res.status(401).render('auth/login', { title: 'Sign in', error: 'Email or password is incorrect.' });
     }
     res.cookie('hisabflow_token', signShop(shop), cookieOptions());
-    res.redirect('/dashboard');
+    res.redirect(303, '/dashboard');
   } catch (err) {
     console.error('[login]', err.message);
     res.status(500).render('auth/login', { title: 'Sign in', error: 'Could not sign you in. Please try again.' });
   }
 });
 
-router.post('/logout', (req, res) => { res.clearCookie('hisabflow_token'); res.redirect('/auth/login'); });
+router.post('/logout', (req, res) => { res.clearCookie('hisabflow_token'); res.redirect(303, '/auth/login'); });
 
 module.exports = router;
