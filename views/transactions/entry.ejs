@@ -1,0 +1,41 @@
+<%- include('../partials/head') %><%- include('../partials/nav') %>
+<main class="container-fluid px-3 px-lg-4 py-4 app-main">
+  <div class="mb-4"><div class="eyebrow">TRANSACTION DESK</div><h1 class="page-title">Record what happened.</h1><p class="muted mb-0">Use the form when you want control, or describe the sale in one sentence.</p></div>
+
+  <div class="entry-switch" aria-label="Entry mode">
+    <a href="#structured" data-entry-route="structured" class="entry-tab">Structured entry</a>
+    <a href="#natural" data-entry-route="natural" class="entry-tab">Quick sentence</a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7 entry-panel" data-entry-panel="structured">
+      <div class="panel-card h-100">
+        <div class="panel-head"><div><div class="eyebrow">CLEAR RECORD</div><h2>Structured entry</h2><p>Choose the customer, amount and what changed.</p></div></div>
+        <form id="transactionForm" novalidate>
+          <div class="row g-3">
+            <div class="col-12"><label class="form-label" for="customerId">Customer</label><select id="customerId" name="customerId" class="form-select form-select-lg" required><option value="">Choose customer</option><% customers.forEach(c => { %><option value="<%= c._id %>"><%= c.name %></option><% }) %></select><div class="form-text">The transaction stays attached to this customer's ledger.</div></div>
+            <div class="col-md-6"><label class="form-label" for="txType">Type</label><select id="txType" name="type" class="form-select form-select-lg"><option value="credit">Credit given</option><option value="payment">Payment received</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="txAmount">Amount</label><div class="input-group input-group-lg"><span class="input-group-text">₹</span><input id="txAmount" name="amount" type="number" min="1" step="0.01" class="form-control" required></div></div>
+            <div class="col-12"><label class="form-label" for="txDescription">Description <span class="muted fw-normal">(optional)</span></label><input id="txDescription" name="description" class="form-control" maxlength="200" placeholder="3 notebooks, monthly grocery bill…"></div>
+          </div>
+          <button class="btn btn-primary btn-lg rounded-pill mt-4 px-4">Save transaction</button>
+          <div id="txMessage" class="mt-3" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-lg-5 entry-panel" data-entry-panel="natural">
+      <div class="panel-card natural-card h-100" id="natural">
+        <div class="eyebrow">QUICK SENTENCE</div><h2>Say it the way you would remember it.</h2>
+        <p class="muted">The app reads the customer and amounts, shows a preview, and waits for your confirmation.</p>
+        <textarea id="naturalText" class="form-control natural-input" rows="4" maxlength="240" placeholder="Ramesh took notebooks for 240 and paid 100."></textarea>
+        <button id="parseNatural" class="btn btn-dark btn-lg w-100 rounded-pill mt-3">Review entry</button>
+        <div id="naturalResult" class="mt-3" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-lg-5 ms-auto"><div class="panel-card"><div class="eyebrow">NEW CUSTOMER</div><h2>Add someone once.</h2><p class="muted">Their account becomes available for future entries.</p><form id="customerForm"><label class="form-label" for="newCustomerName">Name</label><input id="newCustomerName" name="name" class="form-control" required maxlength="80"><label class="form-label mt-3" for="newCustomerPhone">Phone <span class="muted fw-normal">(optional)</span></label><input id="newCustomerPhone" name="phone" class="form-control" maxlength="20"><button class="btn btn-soft w-100 rounded-pill mt-3">Add customer</button><div id="customerMessage" class="mt-3" aria-live="polite"></div></form></div></div>
+  </div>
+</main><%- include('../partials/footer') %>

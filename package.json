@@ -1,0 +1,29 @@
+{
+  "name": "hisabflow-cognifyz-tasks-1-to-6",
+  "version": "1.1.0",
+  "description": "HisabFlow \u2014 a small-shop credit follow-up assistant built for the Cognifyz Full Stack Development internship (Tasks 1\u20136).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node scripts/seed.js",
+    "check": "node --check server.js && node --check public/js/app.js && node --check routes/api.js && node --check routes/auth.js && node --check routes/web.js && node --check services/followUps.js && node --check services/naturalLanguage.js && node --check services/draftStore.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.13.2",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

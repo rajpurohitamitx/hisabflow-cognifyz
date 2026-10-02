@@ -1,0 +1,32 @@
+<%- include('partials/head') %>
+<div class="landing-shell">
+  <div class="container py-4 py-lg-5">
+    <nav class="d-flex align-items-center justify-content-between mb-5">
+      <div class="d-flex align-items-center gap-2"><span class="brand-mark">H</span><strong>HisabFlow</strong></div>
+      <a class="btn btn-outline-light rounded-pill px-4" href="/auth/login">Sign in</a>
+    </nav>
+    <div class="row align-items-center g-5 py-lg-5">
+      <div class="col-lg-7">
+        <div class="eyebrow">SMALL-SHOP CREDIT, WITHOUT THE NOTEBOOK CHAOS</div>
+        <h1 class="display-title">Know <span>who needs a follow-up</span> before the day gets busy.</h1>
+        <p class="lead landing-copy">HisabFlow turns customer credit entries into a simple daily action list, so shopkeepers spend less time scanning pages and more time running the shop.</p>
+        <div class="d-flex flex-wrap gap-3 mt-4">
+          <a href="/auth/register" class="btn btn-primary btn-lg rounded-pill px-4">Create a shop account</a>
+          <a href="/auth/login" class="btn btn-outline-light btn-lg rounded-pill px-4">Sign in</a>
+        </div>
+        <div class="trust-row mt-4"><span>✓ Explainable follow-ups</span><span>✓ Mobile-first</span><span>✓ Shop data isolation</span></div>
+      </div>
+      <div class="col-lg-5">
+        <div class="hero-phone shadow-lg">
+          <div class="phone-top"><span>Today</span><span class="mini-dot"></span></div>
+          <div class="phone-balance">₹18,420 <small>outstanding</small></div>
+          <div class="mini-card urgent"><div><b>Ramesh</b><small>32 days since payment</small></div><strong>₹1,240</strong></div>
+          <div class="mini-card watch"><div><b>Suresh</b><small>18 days since payment</small></div><strong>₹680</strong></div>
+          <div class="mini-card healthy"><div><b>Kumar</b><small>3 days since payment</small></div><strong>₹240</strong></div>
+          <div class="mini-action">Why is Ramesh first? <span>→</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,20 @@
+<nav class="navbar navbar-expand-lg app-nav">
+  <div class="container-fluid px-3 px-lg-4">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/dashboard">
+      <span class="brand-mark">H</span><span>HisabFlow</span>
+    </a>
+    <button class="navbar-toggler border-0" data-bs-toggle="collapse" data-bs-target="#mainNav"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <div class="navbar-nav ms-lg-4 gap-lg-1">
+        <a class="nav-link <%= currentPath === '/dashboard' ? 'active' : '' %>" href="/dashboard">Overview</a>
+        <a class="nav-link <%= currentPath.startsWith('/customers') ? 'active' : '' %>" href="/customers">Customers</a>
+        <a class="nav-link" href="/entry">Add entry</a>
+        <a class="nav-link <%= currentPath === '/daily-closing' ? 'active' : '' %>" href="/daily-closing">Daily closing</a>
+      </div>
+      <div class="ms-auto d-flex align-items-center gap-2 mt-3 mt-lg-0">
+        <span class="shop-chip"><span class="status-dot"></span><%= shop.ownerName %></span>
+        <form method="post" action="/auth/logout"><button class="btn btn-sm btn-ghost" type="submit">Sign out</button></form>
+      </div>
+    </div>
+  </div>
+</nav>

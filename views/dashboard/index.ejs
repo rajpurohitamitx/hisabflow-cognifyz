@@ -1,0 +1,45 @@
+<%- include('../partials/head') %><%- include('../partials/nav') %>
+<main class="container-fluid px-3 px-lg-4 py-4 app-main">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div><div class="eyebrow">OVERVIEW</div><h1 class="page-title">Good morning, <%= shop.ownerName.split(' ')[0] %>.</h1><p class="muted mb-0">Here is what needs your attention today.</p></div>
+    <div class="d-flex gap-2"><a href="/entry" class="btn btn-primary rounded-pill px-4">+ Add transaction</a><a href="/daily-closing" class="btn btn-soft rounded-pill px-4">Daily closing</a></div>
+  </div>
+  <section class="hero-summary mb-4">
+    <div><div class="eyebrow">TOTAL OUTSTANDING</div><div class="hero-number">₹<%= stats.outstanding.toLocaleString('en-IN') %></div><p class="mb-0 summary-copy">Money currently sitting as customer credit.</p></div>
+    <div class="summary-actions"><span class="pill-alert"><%= followUps.filter(x => x.level !== 'healthy').length %> need attention</span><a href="#followups" class="text-link">Review follow-ups →</a></div>
+  </section>
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3"><div class="stat-card"><span>Credit given</span><strong>₹<%= stats.credit.toLocaleString('en-IN') %></strong><small>All recorded credit</small></div></div>
+    <div class="col-6 col-xl-3"><div class="stat-card"><span>Payments received</span><strong>₹<%= stats.payments.toLocaleString('en-IN') %></strong><small>All recorded payments</small></div></div>
+    <div class="col-6 col-xl-3"><div class="stat-card"><span>Customers</span><strong><%= stats.customers %></strong><small>Active customer accounts</small></div></div>
+    <div class="col-6 col-xl-3"><div class="stat-card"><span>Needs attention</span><strong><%= followUps.filter(x => x.level !== 'healthy').length %></strong><small>Based on explainable rules</small></div></div>
+  </div>
+  <div class="row g-4">
+    <div class="col-xl-8" id="followups">
+      <div class="panel-card">
+        <div class="panel-head"><div><h2>Today's follow-ups</h2><p>Prioritized using amount + time since payment.</p></div><span class="live-badge"><span></span> Live</span></div>
+        <% if (!followUps.length) { %><div class="empty-state">No outstanding credit yet. Add your first transaction to build the follow-up list.</div><% } %>
+        <div class="follow-list">
+          <% followUps.slice(0, 6).forEach((item) => { %>
+            <article class="follow-row <%= item.level %>">
+              <div class="avatar"><%= item.name.slice(0,1).toUpperCase() %></div>
+              <div class="follow-main"><div class="d-flex align-items-center gap-2"><h3><%= item.name %></h3><span class="priority priority-<%= item.level %>"><%= item.level === 'urgent' ? 'High attention' : item.level === 'watch' ? 'Watch' : 'Low' %></span></div><p><%= item.daysSincePayment %> days since last payment</p><div class="why"><strong>Why?</strong> <%= item.reasons.join(' · ') %></div></div>
+              <div class="follow-right"><strong>₹<%= item.balance.toLocaleString('en-IN') %></strong><div class="d-flex gap-2 mt-2"><a class="btn btn-sm btn-soft" href="/customers/<%= item.customerId %>">View</a><% if (item.phone) { %><a class="btn btn-sm btn-primary" target="_blank" rel="noopener" href="https://wa.me/<%= item.phone.replace(/\D/g,'') %>?text=<%= encodeURIComponent(`Hi ${item.name}, your pending amount is ₹${item.balance.toLocaleString('en-IN')}. Please settle it when convenient. Thank you.`) %>">Remind</a><% } %></div></div>
+            </article>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4">
+      <div class="panel-card natural-card">
+        <div class="eyebrow">QUICK ENTRY</div><h2>Say it naturally.</h2><p class="muted">Type what happened. Review the parsed result before saving.</p>
+        <div class="example-bubble">“Ramesh took notebooks for 240 and paid 100.”</div>
+        <a href="/entry#natural" class="btn btn-dark w-100 rounded-pill mt-3">Try natural entry →</a>
+      </div>
+      <div class="panel-card mt-4">
+        <div class="panel-head"><div><h2>Recent activity</h2></div><a href="/entry" class="text-link">Add</a></div>
+        <% recent.forEach(tx => { %><div class="activity-row"><div class="activity-icon <%= tx.type %>"><%= tx.type === 'credit' ? '↗' : '↘' %></div><div><b><%= tx.customerId?.name || 'Customer' %></b><small><%= tx.description || (tx.type === 'credit' ? 'Credit' : 'Payment') %></small></div><strong class="<%= tx.type === 'credit' ? 'text-credit' : 'text-payment' %>"><%= tx.type === 'credit' ? '+' : '-' %>₹<%= tx.amount.toLocaleString('en-IN') %></strong></div><% }) %>
+      </div>
+    </div>
+  </div>
+</main><%- include('../partials/footer') %>
