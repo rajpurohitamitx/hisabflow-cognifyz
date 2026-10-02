@@ -20,3 +20,35 @@
 .display-title{line-height:1.12;letter-spacing:-.01em;margin-bottom:1.25rem}
 .landing-copy{margin-top:1rem;max-width:34rem}
 .eyebrow{color:#9be0b4}
+
+/* ---- typography cleanup: one font family, normal spacing ---- */
+body,h1,h2,h3,h4,strong,.navbar-brand,.brand-lockup,.hero-number,.phone-balance,.display-title,.phone-balance small,button,input,select,textarea{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}
+body{font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{letter-spacing:-.01em;font-weight:700}
+.page-title{font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.015em;font-weight:700}
+.section-title{font-size:1.9rem;letter-spacing:-.015em}
+.display-title{font-weight:700;font-size:clamp(2.1rem,4.6vw,3.4rem);line-height:1.15;letter-spacing:-.02em;max-width:640px}
+.eyebrow{text-transform:none;letter-spacing:0;font-weight:600;font-size:.9rem;color:#9be0b4}
+.hero-number{font-weight:700;font-size:clamp(2.2rem,5vw,3.4rem);letter-spacing:-.02em}
+.phone-balance{font-weight:700;font-size:2rem}
+.stat-card strong{font-size:1.5rem;letter-spacing:-.01em}
+.balance-box strong{letter-spacing:-.01em}
+.landing-copy{font-size:1.02rem;line-height:1.65}
+.app-table th{letter-spacing:.04em}
+.app-footer{padding:18px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;margin-top:40px}
+.hero-phone{transform:none}
+@media(max-width:767px){.display-title{font-size:2.1rem}}
+
+/* ---- logo, smoother feel ---- */
+.brand-logo{width:34px;height:34px;border-radius:10px;flex:0 0 auto;box-shadow:0 2px 8px rgba(13,59,42,.25)}
+.brand-lockup{font-weight:700;letter-spacing:-.01em}
+.navbar-brand{display:flex;align-items:center;gap:.6rem;font-weight:700}
+html{scroll-behavior:smooth}
+main,.auth-card,.hero-phone{animation:hf-in .35s ease both}
+@keyframes hf-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+a,.btn,.nav-link,.panel-card,.stat-card,.follow-row,.mini-card,.form-control,.form-select{transition:background-color .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.btn:hover{transform:translateY(-1px)}.btn:active{transform:none}
+.stat-card:hover,.panel-card:hover{box-shadow:0 10px 28px rgba(23,33,27,.07)}
+.follow-row:hover{background:#fafcf9}
+.btn:focus-visible,.nav-link:focus-visible,a:focus-visible{outline:2px solid #78a58e;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

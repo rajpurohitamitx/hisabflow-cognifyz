@@ -1,11 +1,16 @@
 <%- include('../partials/head') %><%- include('../partials/nav') %>
 <main class="container-fluid px-3 px-lg-4 py-4 app-main">
   <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
-    <div><div class="eyebrow">OVERVIEW</div><h1 class="page-title">Good morning, <%= shop.ownerName.split(' ')[0] %>.</h1><p class="muted mb-0">Here is what needs your attention today.</p></div>
+    <div><%
+  const hr = Number(new Date().toLocaleString('en-GB',{hour:'numeric',hour12:false,timeZone:'Asia/Kolkata'}));
+  const hello = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+  const first = shop.ownerName.trim().split(' ')[0];
+  const firstName = first.charAt(0).toUpperCase() + first.slice(1);
+%><div class="eyebrow">Overview</div><h1 class="page-title"><%= hello %>, <%= firstName %>.</h1><p class="muted mb-0">Here is what needs your attention today.</p></div>
     <div class="d-flex gap-2"><a href="/entry" class="btn btn-primary rounded-pill px-4">+ Add transaction</a><a href="/daily-closing" class="btn btn-soft rounded-pill px-4">Daily closing</a></div>
   </div>
   <section class="hero-summary mb-4">
-    <div><div class="eyebrow">TOTAL OUTSTANDING</div><div class="hero-number">₹<%= stats.outstanding.toLocaleString('en-IN') %></div><p class="mb-0 summary-copy">Money currently sitting as customer credit.</p></div>
+    <div><div class="eyebrow">Total outstanding</div><div class="hero-number">₹<%= stats.outstanding.toLocaleString('en-IN') %></div><p class="mb-0 summary-copy">Money currently sitting as customer credit.</p></div>
     <div class="summary-actions"><span class="pill-alert"><%= followUps.filter(x => x.level !== 'healthy').length %> need attention</span><a href="#followups" class="text-link">Review follow-ups →</a></div>
   </section>
   <div class="row g-3 mb-4">
@@ -17,7 +22,7 @@
   <div class="row g-4">
     <div class="col-xl-8" id="followups">
       <div class="panel-card">
-        <div class="panel-head"><div><h2>Today's follow-ups</h2><p>Prioritized using amount + time since payment.</p></div><span class="live-badge"><span></span> Live</span></div>
+        <div class="panel-head"><div><h2>Today's follow-ups</h2><p>Prioritized using amount + time since payment.</p></div></div>
         <% if (!followUps.length) { %><div class="empty-state">No outstanding credit yet. Add your first transaction to build the follow-up list.</div><% } %>
         <div class="follow-list">
           <% followUps.slice(0, 6).forEach((item) => { %>
@@ -32,7 +37,7 @@
     </div>
     <div class="col-xl-4">
       <div class="panel-card natural-card">
-        <div class="eyebrow">QUICK ENTRY</div><h2>Say it naturally.</h2><p class="muted">Type what happened. Review the parsed result before saving.</p>
+        <div class="eyebrow">Quick entry</div><h2>Say it naturally.</h2><p class="muted">Type what happened. Review the parsed result before saving.</p>
         <div class="example-bubble">“Ramesh took notebooks for 240 and paid 100.”</div>
         <a href="/entry#natural" class="btn btn-dark w-100 rounded-pill mt-3">Try natural entry →</a>
       </div>
