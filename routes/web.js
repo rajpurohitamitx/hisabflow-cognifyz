@@ -13,11 +13,6 @@ router.get('/', (req, res) => {
 
 router.use(requireAuth);
 
-router.get('/welcome', (req, res) => {
-  const first = String(req.shop.ownerName || '').trim().split(' ')[0];
-  res.render('welcome', { title: 'Welcome', shop: req.shop, firstName: first.charAt(0).toUpperCase() + first.slice(1), isNew: req.query.new === '1' });
-});
-
 router.get('/dashboard', async (req, res) => {
   const [grouped, customerCount, recent] = await Promise.all([
     Transaction.aggregate([{ $match: { shopId: req.shop._id } }, { $group: { _id: '$type', total: { $sum: '$amount' }, count: { $sum: 1 } } }]),

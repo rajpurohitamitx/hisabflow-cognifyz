@@ -34,6 +34,8 @@ app.use((req, res, next) => {
 
 ['/login', '/signin'].forEach((p) => app.get(p, (req, res) => res.redirect('/auth/login')));
 ['/register', '/signup'].forEach((p) => app.get(p, (req, res) => res.redirect('/auth/register')));
+// old bookmark / cached redirect safety: /welcome simply goes to the dashboard
+app.get('/welcome', (req, res) => res.redirect('/dashboard'));
 app.use('/auth', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/', webRoutes);
