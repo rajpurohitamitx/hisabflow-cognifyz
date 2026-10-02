@@ -13,6 +13,7 @@ async function requireAuth(req, res, next) {
     const shop = await Shop.findById(payload.sub).lean();
     if (!shop) return res.redirect('/auth/login');
     req.shop = shop;
+    res.locals.shop = shop;
     next();
   } catch (err) {
     res.clearCookie('hisabflow_token');

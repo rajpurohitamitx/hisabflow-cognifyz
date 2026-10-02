@@ -29,9 +29,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/', webRoutes);
 app.use('/auth', authRoutes);
 app.use('/api', apiRoutes);
+app.use('/', webRoutes);
 
 app.use((req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Route not found' });
@@ -41,8 +41,9 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error('[error]', err);
   if (res.headersSent) return next(err);
-  if (req.path.startsWith('/api/')) return res.status(500).json({ error: 'Something went wrong on the server.' });
-  res.status(500).render('error', { title: 'Something went wrong', message: 'Please try again. Check the server log for details.' });
+  const status = err.status || err.statusCode || (err.name === 'CastError' ? 404 : 500);
+  if (req.path.startsWith('/api/')) return res.status(status).json({ error: status === 500 ? 'Something went wrong on the server.' : (status === 404 ? 'Not found' : 'Bad request') });
+  res.status(status).render('error', { title: status === 404 ? 'Page not found' : 'Something went wrong', message: 'Please try again. Check the server log for details.' });
 });
 
 let dbPromise = null;
@@ -51,8 +52,8 @@ async function connectDb() {
   if (!process.env.MONGODB_URI) {
     throw new Error('MONGODB_URI is not configured.');
   }
-  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
-    throw new Error('JWT_SECRET must be at least 32 characters.');
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32 || /replace-with/i.test(process.env.JWT_SECRET)) {
+    throw new Error('JWT_SECRET must be a real random value of 32+ characters.');
   }
 
   if (mongoose.connection.readyState === 1) return;

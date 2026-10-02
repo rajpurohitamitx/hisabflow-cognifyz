@@ -15,3 +15,8 @@
 .app-footer{border-top:1px solid var(--line);margin-top:2rem;padding:18px 0;color:#7a847d;font-size:.76rem;background:#f0f3ee}
 .app-footer .container-fluid{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}
 @media(max-width:767px){.entry-switch{width:100%}.entry-tab{flex:1;text-align:center}.app-footer .container-fluid{justify-content:center;text-align:center}.follow-right{min-width:105px}}
+
+/* readability fixes for the landing hero */
+.display-title{line-height:1.12;letter-spacing:-.01em;margin-bottom:1.25rem}
+.landing-copy{margin-top:1rem;max-width:34rem}
+.eyebrow{color:#9be0b4}

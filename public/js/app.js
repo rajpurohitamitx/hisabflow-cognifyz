@@ -54,7 +54,7 @@
     const value = password?.value || '';
     if (value.length < 8 || !/[A-Z]/.test(value) || !/[0-9]/.test(value)) {
       event.preventDefault();
-      message(document.querySelector('#strengthText').parentElement, 'Use at least 8 characters, one capital letter and one number.', 'danger');
+      message(document.querySelector('#registerAlert') || document.querySelector('#strengthText'), 'Use at least 8 characters, one capital letter and one number.', 'danger');
     }
   });
 
