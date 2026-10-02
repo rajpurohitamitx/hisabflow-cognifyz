@@ -60,3 +60,7 @@ a,.btn,.nav-link,.panel-card,.stat-card,.follow-row,.mini-card,.form-control,.fo
 .welcome-bar{height:4px;background:#e4ece3;border-radius:4px;overflow:hidden;margin:22px auto 0;max-width:220px}
 .welcome-bar span{display:block;height:100%;background:var(--green);width:0;animation:hf-fill 2.5s linear forwards}
 @keyframes hf-fill{to{width:100%}}
+
+.tx-actions{display:flex;gap:6px;margin-left:14px}
+.tx-actions .btn{padding:.2rem .6rem;font-size:.75rem;border-radius:999px}
+@media(max-width:575px){.timeline-row{flex-wrap:wrap}.tx-actions{margin-left:22px;width:100%}}

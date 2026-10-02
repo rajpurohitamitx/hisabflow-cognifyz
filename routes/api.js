@@ -77,7 +77,7 @@ router.put('/transactions/:id', async (req, res) => {
   if (!['credit', 'payment'].includes(req.body.type) || !value) return res.status(400).json({ error: 'Valid type and positive amount are required.' });
   const tx = await Transaction.findOneAndUpdate(
     { _id: req.params.id, shopId: req.shop._id },
-    { $set: { type: req.body.type, amount: value, description: cleanText(req.body.description), occurredAt: req.body.occurredAt || Date.now() } },
+    { $set: { type: req.body.type, amount: value, description: cleanText(req.body.description), ...(req.body.occurredAt && !Number.isNaN(new Date(req.body.occurredAt).getTime()) ? { occurredAt: new Date(req.body.occurredAt) } : {}) } },
     { new: true, runValidators: true }
   );
   if (!tx) return res.status(404).json({ error: 'Transaction not found.' });

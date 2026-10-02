@@ -150,4 +150,32 @@
       result.replaceChildren(card);
     } catch (error) { message(result, error.message, 'danger'); }
   });
+
+  // Edit / delete an entry on the customer ledger
+  const txModalEl = document.querySelector('#txModal');
+  if (txModalEl && window.bootstrap) {
+    const modal = new bootstrap.Modal(txModalEl);
+    const fType = document.querySelector('#txType'), fAmount = document.querySelector('#txAmount'), fNote = document.querySelector('#txNote'), fErr = document.querySelector('#txError');
+    let editingId = null;
+    document.querySelectorAll('.tx-edit').forEach(btn => btn.addEventListener('click', () => {
+      editingId = btn.dataset.id; fType.value = btn.dataset.type; fAmount.value = btn.dataset.amount; fNote.value = btn.dataset.note || '';
+      fErr.replaceChildren(); modal.show();
+    }));
+    document.querySelector('#txSave').addEventListener('click', async (event) => {
+      const save = event.currentTarget; save.disabled = true;
+      try {
+        await readJson(await fetch(`/api/transactions/${editingId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: fType.value, amount: fAmount.value, description: fNote.value })
+        }));
+        window.location.reload();
+      } catch (error) { save.disabled = false; message(fErr, error.message, 'danger'); }
+    });
+    document.querySelectorAll('.tx-delete').forEach(btn => btn.addEventListener('click', async () => {
+      if (!window.confirm(`Delete this ₹${Number(btn.dataset.amount).toLocaleString('en-IN')} entry? This cannot be undone.`)) return;
+      btn.disabled = true;
+      try { await readJson(await fetch(`/api/transactions/${btn.dataset.id}`, { method: 'DELETE' })); window.location.reload(); }
+      catch (error) { btn.disabled = false; window.alert(error.message); }
+    }));
+  }
 })();
