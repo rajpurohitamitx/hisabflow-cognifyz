@@ -45,19 +45,43 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', { title: 'Something went wrong', message: 'Please try again. Check the server log for details.' });
 });
 
-async function boot() {
+let dbPromise = null;
+
+async function connectDb() {
   if (!process.env.MONGODB_URI) {
-    console.error('MONGODB_URI is required. Copy .env.example to .env and set it.');
-    process.exit(1);
+    throw new Error('MONGODB_URI is not configured.');
   }
   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
-    console.error('JWT_SECRET must be at least 32 characters.');
-    process.exit(1);
+    throw new Error('JWT_SECRET must be at least 32 characters.');
   }
 
-  await mongoose.connect(process.env.MONGODB_URI);
-  console.log('MongoDB connected');
+  if (mongoose.connection.readyState === 1) return;
+  if (!dbPromise) {
+    dbPromise = mongoose.connect(process.env.MONGODB_URI).catch((err) => {
+      dbPromise = null;
+      throw err;
+    });
+  }
+  await dbPromise;
+}
+
+async function boot() {
+  await connectDb();
   app.listen(PORT, () => console.log(`HisabFlow running at http://localhost:${PORT}`));
+}
+
+// Vercel invokes this exported function for every HTTP request.
+// The database connection is cached between warm invocations.
+async function vercelHandler(req, res) {
+  try {
+    await connectDb();
+    return app(req, res);
+  } catch (err) {
+    console.error('[startup]', err.message);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: 'HisabFlow could not connect to its database.' });
+    }
+  }
 }
 
 if (require.main === module) boot().catch((err) => {
@@ -65,4 +89,6 @@ if (require.main === module) boot().catch((err) => {
   process.exit(1);
 });
 
-module.exports = { app, boot };
+module.exports = vercelHandler;
+module.exports.app = app;
+module.exports.boot = boot;

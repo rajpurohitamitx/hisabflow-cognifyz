@@ -1,47 +1,48 @@
-# HisabFlow — Vercel deployment
+# HisabFlow — Vercel deployment (Tasks 1–6)
 
-This repository is **one application containing Cognifyz Tasks 1–6**. Do not import the Task-1/Task-2 folders as separate Vercel projects.
+This repository is **one Express application** containing Cognifyz Tasks 1–6. Do not deploy each task separately.
 
-## 1. Push the entire project to one GitHub repository
+## 1. GitHub
 
-The repository root must contain `package.json`, `server.js`, `api/index.js`, `vercel.json`, `views/`, `public/`, `routes/`, `models/`, `middleware/`, `services/`, and `Task-1` through `Task-6` documentation folders.
+Upload the **contents of this folder** to the root of your GitHub repository. `package.json`, `server.js`, `vercel.json`, `views/`, `routes/`, `models/`, `public/`, etc. must be at the repository root.
 
-## 2. Import that one repository into Vercel
+## 2. Vercel
 
-Use **Add New → Project → Import** and select the GitHub repository.
+Import the GitHub repository as one Vercel project.
 
-Recommended settings:
-- Framework Preset: Other
-- Root Directory: `.`
-- Build Command: leave empty
-- Output Directory: leave empty
-- Install Command: `npm install`
+Framework preset: **Other**
+Build command: leave empty/default
+Output directory: leave empty/default
+Install command: `npm install`
 
-## 3. Add Environment Variables
+The included `vercel.json` sends all requests to the Express handler in `server.js`.
 
-Add these in Vercel for the Production environment:
+## 3. Environment variables
 
-- `MONGODB_URI` — your MongoDB Atlas connection string
-- `JWT_SECRET` — a random secret of at least 32 characters
-- `NODE_ENV` — `production`
+Add these in Vercel → Settings → Environment Variables:
 
-Do not commit a real `.env` file.
+- `MONGODB_URI` = your MongoDB Atlas connection string
+- `JWT_SECRET` = a random secret of at least 32 characters
+- `NODE_ENV` = `production`
 
-## 4. Deploy
+Apply them to **Production** (and Preview if you want preview deployments to work).
 
-Vercel uses `api/index.js` as the serverless entry point and rewrites requests through Express. MongoDB is connected lazily on the first request and reused when possible.
+## 4. Redeploy
 
-## 5. Test
+After adding the variables, deploy the latest commit again.
 
-Open the deployment URL and test:
-1. Create shop account
-2. Log in
-3. Add customer
-4. Add credit/payment transaction
-5. Open Today's Follow-ups
-6. Open customer ledger
-7. Test WhatsApp reminder link
-8. Open Daily Closing
-9. Create a second shop and verify its data is isolated
+## 5. First test
 
-If deployment fails, copy the exact Vercel build/runtime error before changing code.
+Open the production domain and:
+
+1. Create a shop account.
+2. Sign in.
+3. Add a customer.
+4. Add a credit transaction.
+5. Add a payment.
+6. Open Today's Follow-ups.
+7. Open Daily Closing.
+
+## Important
+
+MongoDB Atlas must allow Vercel's connections. For a temporary student demo, Atlas Network Access can use `0.0.0.0/0`; use a strong database password and do not commit the connection string.

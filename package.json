@@ -1,6 +1,6 @@
 {
-  "name": "hisabflow-cognifyz-tasks-1-to-6",
-  "version": "1.1.0",
+  "name": "hisabflow-cognifyz",
+  "version": "1.0.0",
   "description": "HisabFlow \u2014 a small-shop credit follow-up assistant built for the Cognifyz Full Stack Development internship (Tasks 1\u20136).",
   "main": "server.js",
   "scripts": {
