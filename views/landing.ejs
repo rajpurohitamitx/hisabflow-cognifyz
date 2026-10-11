@@ -1,38 +1,79 @@
 <%- include('partials/head') %>
-<div class="landing-shell">
-  <div class="container py-4 py-lg-5">
-    <nav class="d-flex align-items-center justify-content-between mb-5">
-      <div class="d-flex align-items-center gap-2"><img src="/img/logo.svg" alt="" class="brand-logo" width="34" height="34"><strong>HisabFlow</strong></div>
-      <a class="btn btn-outline-light rounded-pill px-4" href="/auth/login">Sign in</a>
-    </nav>
-    <div class="row align-items-center g-5 py-lg-5">
-      <div class="col-lg-7">
-        <div class="eyebrow">Small-shop credit, without the notebook chaos</div>
-        <h1 class="display-title">Know <span>who needs a follow-up</span> before the day gets busy.</h1>
-        <p class="lead landing-copy">HisabFlow turns customer credit entries into a simple daily action list, so shopkeepers spend less time scanning pages and more time running the shop.</p>
-        <div class="d-flex flex-wrap gap-3 mt-4">
-          <a href="/auth/register" class="btn btn-primary btn-lg rounded-pill px-4">Create a shop account</a>
-          <a href="/auth/login" class="btn btn-outline-light btn-lg rounded-pill px-4">Sign in</a>
-        </div>
-        <div class="trust-row mt-4"><span>✓ Explainable follow-ups</span><span>✓ Mobile-first</span><span>✓ Shop data isolation</span></div>
-      </div>
-      <div class="col-lg-5">
-                <svg class="money-art" viewBox="0 0 360 150" role="img" aria-label="Rupee notes and coins" style="width:100%;max-width:420px;display:block;margin:0 auto 20px">
-          <g transform="rotate(-6 120 80)"><rect x="20" y="30" width="200" height="100" rx="10" fill="#cfe8d5" stroke="#2f7d4f" stroke-width="3"/><rect x="32" y="42" width="176" height="76" rx="6" fill="none" stroke="#2f7d4f" stroke-dasharray="4 4"/><circle cx="120" cy="80" r="26" fill="#2f7d4f"/><text x="120" y="91" text-anchor="middle" font-size="30" font-weight="700" fill="#fff" font-family="Georgia,serif">₹</text><text x="44" y="62" font-size="16" font-weight="700" fill="#1f5c38" font-family="Georgia,serif">500</text><text x="196" y="112" text-anchor="end" font-size="16" font-weight="700" fill="#1f5c38" font-family="Georgia,serif">500</text></g>
-          <g transform="rotate(5 200 70)"><rect x="110" y="14" width="190" height="96" rx="10" fill="#f6e3b4" stroke="#b9871c" stroke-width="3"/><circle cx="205" cy="62" r="24" fill="#b9871c"/><text x="205" y="73" text-anchor="middle" font-size="28" font-weight="700" fill="#fff" font-family="Georgia,serif">₹</text><text x="128" y="40" font-size="15" font-weight="700" fill="#7a5710" font-family="Georgia,serif">100</text><text x="284" y="98" text-anchor="end" font-size="15" font-weight="700" fill="#7a5710" font-family="Georgia,serif">100</text></g>
-          <g><circle cx="300" cy="112" r="26" fill="#e8c35a" stroke="#a87c12" stroke-width="3"/><circle cx="300" cy="112" r="19" fill="none" stroke="#a87c12"/><text x="300" y="121" text-anchor="middle" font-size="24" font-weight="700" fill="#7a5710" font-family="Georgia,serif">₹10</text></g>
-          <g><circle cx="338" cy="96" r="18" fill="#d9dde2" stroke="#8a929b" stroke-width="3"/><text x="338" y="102" text-anchor="middle" font-size="16" font-weight="700" fill="#4b535c" font-family="Georgia,serif">₹5</text></g>
-        </svg>
-        <div class="hero-phone shadow-lg">
-          <div class="phone-top"><span>Today</span><span class="mini-dot"></span></div>
-          <div class="phone-balance">₹18,420 <small>outstanding</small></div>
-          <div class="mini-card urgent"><div><b>Ramesh</b><small>32 days since payment</small></div><strong>₹1,240</strong></div>
-          <div class="mini-card watch"><div><b>Suresh</b><small>18 days since payment</small></div><strong>₹680</strong></div>
-          <div class="mini-card healthy"><div><b>Kumar</b><small>3 days since payment</small></div><strong>₹240</strong></div>
-          <div class="mini-action">Why is Ramesh first? <span>→</span></div>
-        </div>
-      </div>
+<div class="landing">
+  <div class="container">
+    <div class="landing-top">
+      <a class="brand-lockup" href="/"><img src="/img/logo.svg" alt="" class="brand-logo" width="32" height="32"><span class="brand-name">HisabFlow</span></a>
+      <a class="btn btn-outline" href="/auth/login">Sign in</a>
     </div>
+    <section class="hero">
+      <div class="row g-4 g-lg-5 align-items-center">
+        <div class="col-lg-6">
+          <h1>Write the khata the way you’d say it.</h1>
+          <p class="lead">Type <span class="sample">“Meena took 2 kg sugar at 45 and a litre of oil for 130, paid 100.”</span> HisabFlow splits it into items, rates and a payment. You check the preview, then it goes into her ledger.</p>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="/auth/register" class="btn btn-primary btn-lg">Start your khata</a>
+            <a href="/auth/login" class="btn btn-quiet btn-lg">Sign in</a>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="paper" role="img" aria-label="Example of a typed sentence turned into an itemised entry">
+            <p class="paper-label">You type</p>
+            <div class="typed sample">Meena took 2 kg sugar at 45 and 1 litre oil 130, paid 100</div>
+            <p class="paper-label mt-3">HisabFlow reads</p>
+            <table>
+              <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead>
+              <tbody>
+                <tr><td>Sugar</td><td class="num">2 kg</td><td class="num">₹45</td><td class="num">₹90</td></tr>
+                <tr><td>Oil</td><td class="num">1 L</td><td class="num">₹130</td><td class="num">₹130</td></tr>
+              </tbody>
+              <tfoot>
+                <tr><td colspan="3">Credit</td><td class="num"><span class="amt amt-credit">+₹220</span></td></tr>
+                <tr><td colspan="3">Paid now</td><td class="num"><span class="amt amt-payment">−₹100</span></td></tr>
+                <tr><td colspan="3">Still to collect</td><td class="num">₹120</td></tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="row g-4 g-lg-5">
+        <div class="col-lg-5">
+          <h2>Say it however comes naturally.</h2>
+          <p>Names, items, quantities, rates and payments can come in any order. You always see what was understood before anything is saved.</p>
+        </div>
+        <div class="col-lg-7">
+          <ul class="phrases">
+            <li><q>Meena took rice 5 kg 300</q><span>Rice, 5 kg, ₹300 credit</span></li>
+            <li><q>3 notebooks at 40 each for Ravi</q><span>3 × ₹40 = ₹120 credit</span></li>
+            <li><q>received 500 from Anita</q><span>₹500 payment</span></li>
+            <li><q>Kumar udhaar 250</q><span>₹250 credit</span></li>
+            <li><q>Priya cleared her dues</q><span>Pays off the full balance</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="row g-4 g-lg-5">
+        <div class="col-lg-5">
+          <h2>A short list for each morning.</h2>
+          <p>Customers with money pending are ranked by how much they owe and how long since they last paid. Every name on the list shows the reason it is there.</p>
+        </div>
+        <div class="col-lg-7">
+          <table class="rank-table">
+            <thead><tr><th>Signal</th><th>Adds to priority</th></tr></thead>
+            <tbody>
+              <tr><td>No payment for 7 / 14 / 30+ days</td><td>Low / medium / high</td></tr>
+              <tr><td>Balance under ₹500</td><td>Low</td></tr>
+              <tr><td>Balance ₹500 or more</td><td>Medium</td></tr>
+              <tr><td>Balance ₹1,000 or more</td><td>High</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
 <%- include('partials/footer') %>

@@ -5,6 +5,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const { sameOrigin } = require('./middleware/security');
 const mongoose = require('mongoose');
 
 const webRoutes = require('./routes/web');
@@ -18,17 +19,40 @@ app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-app.use(helmet({ contentSecurityPolicy: false }));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json({ limit: '100kb' }));
+const isProd = process.env.NODE_ENV === 'production';
+app.disable('x-powered-by');
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", 'https://cdn.jsdelivr.net'],
+      styleSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc: ["'self'", 'data:'],
+      connectSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"],
+      upgradeInsecureRequests: isProd ? [] : null
+    }
+  },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
+}));
+app.use(express.urlencoded({ extended: false, limit: '20kb' }));
+app.use(express.json({ limit: '20kb' }));
 app.use(cookieParser());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
+app.use(sameOrigin);
 
+app.locals.inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+app.locals.signed = (type, n) => (type === 'credit' ? '+' : '\u2212') + app.locals.inr(n);
 app.locals.fmtDateTime = (d) => new Date(d).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
 
 app.use((req, res, next) => {
   res.locals.currentPath = req.path;
+  res.locals.description = null;
   next();
 });
 
@@ -52,7 +76,7 @@ app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
   const status = err.status || err.statusCode || (err.name === 'CastError' ? 404 : 500);
   if (req.path.startsWith('/api/')) return res.status(status).json({ error: status === 500 ? 'Something went wrong on the server.' : (status === 404 ? 'Not found' : 'Bad request') });
-  res.status(status).render('error', { title: status === 404 ? 'Page not found' : 'Something went wrong', message: 'Please try again. Check the server log for details.' });
+  res.status(status).render('error', { title: status === 404 ? 'Page not found' : 'Something went wrong', message: 'Please try again in a moment.' });
 });
 
 let dbPromise = null;

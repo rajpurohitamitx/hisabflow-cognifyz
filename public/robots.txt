@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /$
+Allow: /privacy
+Allow: /terms
+Disallow: /dashboard
+Disallow: /customers
+Disallow: /entry
+Disallow: /daily-closing
+Disallow: /api/
+Disallow: /auth/

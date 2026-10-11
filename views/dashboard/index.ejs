@@ -1,50 +1,73 @@
 <%- include('../partials/head') %><%- include('../partials/nav') %>
-<main class="container-fluid px-3 px-lg-4 py-4 app-main">
-  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
-    <div><%
-  const hr = Number(new Date().toLocaleString('en-GB',{hour:'numeric',hour12:false,timeZone:'Asia/Kolkata'}));
+<%
+  const hr = Number(new Date().toLocaleString('en-GB', { hour: 'numeric', hour12: false, timeZone: 'Asia/Kolkata' }));
   const hello = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
   const first = shop.ownerName.trim().split(' ')[0];
   const firstName = first.charAt(0).toUpperCase() + first.slice(1);
-%><div class="eyebrow">Overview</div><h1 class="page-title"><%= hello %>, <%= firstName %>.</h1><p class="muted mb-0">Here is what needs your attention today.</p></div>
-    <div class="d-flex gap-2"><a href="/entry" class="btn btn-primary rounded-pill px-4">+ Add transaction</a><a href="/daily-closing" class="btn btn-soft rounded-pill px-4">Daily closing</a></div>
+  const attention = followUps.filter(x => x.level !== 'healthy').length;
+  const label = { urgent: 'Follow up now', watch: 'Keep an eye', healthy: 'Low' };
+%>
+<main class="container-fluid px-3 px-lg-4 py-4 app-main">
+  <div class="page-head">
+    <div><h1 class="page-title"><%= hello %>, <%= firstName %>.</h1><p class="page-lead"><%= attention ? attention + (attention === 1 ? ' customer needs' : ' customers need') + ' a follow-up today.' : 'Nobody needs a follow-up right now.' %></p></div>
+    <div class="d-flex gap-2"><a href="/entry" class="btn btn-primary">Add entry</a><a href="/daily-closing" class="btn btn-quiet">Daily closing</a></div>
   </div>
-  <section class="hero-summary mb-4">
-    <div><div class="eyebrow">Total outstanding</div><div class="hero-number">₹<%= stats.outstanding.toLocaleString('en-IN') %></div><p class="mb-0 summary-copy">Money currently sitting as customer credit.</p></div>
-    <div class="summary-actions"><span class="pill-alert"><%= followUps.filter(x => x.level !== 'healthy').length %> need attention</span><a href="#followups" class="text-link">Review follow-ups →</a></div>
+
+  <section class="summary mb-4" aria-label="Summary">
+    <div><div class="summary-label">Total outstanding</div><div class="big-figure"><%= inr(stats.outstanding) %></div><p class="summary-note">Credit given that has not been paid back yet.</p></div>
+    <dl class="figures">
+      <div><dt>Credit given</dt><dd><%= inr(stats.credit) %></dd></div>
+      <div><dt>Payments received</dt><dd><%= inr(stats.payments) %></dd></div>
+      <div><dt>Customers</dt><dd><%= stats.customers %></dd></div>
+    </dl>
   </section>
-  <div class="row g-3 mb-4">
-    <div class="col-6 col-xl-3"><div class="stat-card"><span>Credit given</span><strong>₹<%= stats.credit.toLocaleString('en-IN') %></strong><small>All recorded credit</small></div></div>
-    <div class="col-6 col-xl-3"><div class="stat-card"><span>Payments received</span><strong>₹<%= stats.payments.toLocaleString('en-IN') %></strong><small>All recorded payments</small></div></div>
-    <div class="col-6 col-xl-3"><div class="stat-card"><span>Customers</span><strong><%= stats.customers %></strong><small>Active customer accounts</small></div></div>
-    <div class="col-6 col-xl-3"><div class="stat-card"><span>Needs attention</span><strong><%= followUps.filter(x => x.level !== 'healthy').length %></strong><small>Based on explainable rules</small></div></div>
-  </div>
+
   <div class="row g-4">
-    <div class="col-xl-8" id="followups">
-      <div class="panel-card">
-        <div class="panel-head"><div><h2>Today's follow-ups</h2><p>Prioritized using amount + time since payment.</p></div></div>
-        <% if (!followUps.length) { %><div class="empty-state">No outstanding credit yet. Add your first transaction to build the follow-up list.</div><% } %>
-        <div class="follow-list">
+    <div class="col-lg-8">
+      <div class="sheet" id="followups">
+        <h2 class="sheet-title">Who to follow up with</h2>
+        <p class="sheet-sub">Ranked by how much is pending and how long since the last payment.</p>
+        <% if (!followUps.length) { %><div class="empty">No pending credit yet. Add an entry and the list builds itself.</div><% } %>
+        <ul class="follow-list">
           <% followUps.slice(0, 6).forEach((item) => { %>
-            <article class="follow-row <%= item.level %>">
-              <div class="avatar"><%= item.name.slice(0,1).toUpperCase() %></div>
-              <div class="follow-main"><div class="d-flex align-items-center gap-2"><h3><%= item.name %></h3><span class="priority priority-<%= item.level %>"><%= item.level === 'urgent' ? 'High attention' : item.level === 'watch' ? 'Watch' : 'Low' %></span></div><p><%= item.daysSincePayment %> days since last payment</p><div class="why"><strong>Why?</strong> <%= item.reasons.join(' · ') %></div></div>
-              <div class="follow-right"><strong>₹<%= item.balance.toLocaleString('en-IN') %></strong><div class="d-flex gap-2 mt-2"><a class="btn btn-sm btn-soft" href="/customers/<%= item.customerId %>">View</a><% if (item.phone) { %><a class="btn btn-sm btn-primary" target="_blank" rel="noopener" href="https://wa.me/<%= item.phone.replace(/\D/g,'') %>?text=<%= encodeURIComponent(`Hi ${item.name}, your pending amount is ₹${item.balance.toLocaleString('en-IN')}. Please settle it when convenient. Thank you.`) %>">Remind</a><% } %></div></div>
-            </article>
+            <li class="follow-item">
+              <span class="avatar" aria-hidden="true"><%= item.name.slice(0, 1).toUpperCase() %></span>
+              <div>
+                <h3 class="follow-name"><%= item.name %><span class="tag tag-<%= item.level %>"><%= label[item.level] %></span></h3>
+                <p class="follow-meta"><%= item.daysSincePayment %> days since last payment</p>
+                <p class="follow-why"><%= item.reasons.join(' · ') %></p>
+              </div>
+              <div class="follow-side">
+                <span class="amt"><%= inr(item.balance) %></span>
+                <div class="follow-actions">
+                  <a class="btn btn-quiet" href="/customers/<%= item.customerId %>">Ledger</a>
+                  <% if (item.phone && item.phone.replace(/\D/g, '').length >= 8) { %><a class="btn btn-primary" target="_blank" rel="noopener noreferrer" href="https://wa.me/<%= item.phone.replace(/\D/g, '') %>?text=<%= encodeURIComponent('Hi ' + item.name + ', your pending amount is ' + inr(item.balance) + '. Please settle it when convenient. Thank you.') %>">Remind</a><% } %>
+                </div>
+              </div>
+            </li>
           <% }) %>
-        </div>
+        </ul>
       </div>
     </div>
-    <div class="col-xl-4">
-      <div class="panel-card natural-card">
-        <div class="eyebrow">Quick entry</div><h2>Say it naturally.</h2><p class="muted">Type what happened. Review the parsed result before saving.</p>
-        <div class="example-bubble">“Ramesh took notebooks for 240 and paid 100.”</div>
-        <a href="/entry#natural" class="btn btn-dark w-100 rounded-pill mt-3">Try natural entry →</a>
+    <div class="col-lg-4">
+      <div class="sheet">
+        <h2 class="sheet-title">Add by typing</h2>
+        <p class="sheet-sub">Write it like you’d say it. You’ll see a preview first.</p>
+        <a href="/entry#natural" class="btn btn-primary w-100">Open the entry desk</a>
       </div>
-      <div class="panel-card mt-4">
-        <div class="panel-head"><div><h2>Recent activity</h2></div><a href="/entry" class="text-link">Add</a></div>
-        <% recent.forEach(tx => { %><div class="activity-row"><div class="activity-icon <%= tx.type %>"><%= tx.type === 'credit' ? '↗' : '↘' %></div><div><b><%= tx.customerId?.name || 'Customer' %></b><small><%= tx.description || (tx.type === 'credit' ? 'Credit' : 'Payment') %></small></div><strong class="<%= tx.type === 'credit' ? 'text-credit' : 'text-payment' %>"><%= tx.type === 'credit' ? '+' : '-' %>₹<%= tx.amount.toLocaleString('en-IN') %></strong></div><% }) %>
+      <div class="sheet mt-4">
+        <div class="sheet-head"><h2 class="sheet-title">Recent entries</h2><a href="/entry">Add</a></div>
+        <% if (!recent.length) { %><div class="empty">Nothing recorded yet.</div><% } %>
+        <ul class="recent">
+          <% recent.forEach(tx => { %>
+            <li>
+              <div><b><%= tx.customerId?.name || 'Customer' %></b><small><%= tx.description || (tx.type === 'credit' ? 'Credit' : 'Payment') %></small></div>
+              <span class="amt amt-<%= tx.type %>"><%= signed(tx.type, tx.amount) %></span>
+            </li>
+          <% }) %>
+        </ul>
       </div>
     </div>
   </div>
-</main><%- include('../partials/footer') %>
+</main>
+<%- include('../partials/footer') %>

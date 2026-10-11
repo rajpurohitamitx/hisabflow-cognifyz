@@ -1,17 +1,23 @@
 <%- include('../partials/head') %>
 <div class="auth-shell"><div class="auth-card">
-  <a class="brand-lockup" href="/"><img src="/img/logo.svg" alt="" class="brand-logo" width="34" height="34"><span>HisabFlow</span></a>
-  <div class="mt-5"><div class="eyebrow">Set up your shop</div><h1 class="section-title">Start with a cleaner khata.</h1><p class="muted">Your account keeps each shop's customers and transactions isolated.</p></div>
-  <% if (error) { %><div class="alert alert-danger mt-4"><%= error %></div><% } %>
-  <form method="post" action="/auth/register" class="mt-4" id="registerForm">
-    <div id="registerAlert"></div>
-    <label class="form-label">Shop name</label><input class="form-control" name="shopName" required maxlength="100" placeholder="Sri Lakshmi Stores">
-    <label class="form-label mt-3">Owner name</label><input class="form-control" name="ownerName" required maxlength="80" placeholder="Your name">
-    <label class="form-label mt-3">Email</label><input class="form-control" type="email" name="email" required placeholder="you@example.com">
-    <label class="form-label mt-3">Password</label><input class="form-control" id="password" type="password" name="password" required minlength="8" placeholder="At least 8 characters">
-    <div class="strength mt-2"><span id="strengthBar"></span></div><small id="strengthText" class="muted">Use 8+ characters with a mix of letters and numbers.</small>
-    <button class="btn btn-primary btn-lg w-100 rounded-pill mt-4">Create shop</button>
+  <a class="brand-lockup" href="/"><img src="/img/logo.svg" alt="" class="brand-logo" width="32" height="32"><span class="brand-name">HisabFlow</span></a>
+  <h1>Set up your shop</h1>
+  <p class="muted">It takes a minute. Your customers and entries are visible only to you.</p>
+  <% if (error) { %><div class="msg msg-danger mt-3" role="alert"><%= error %></div><% } %>
+  <form method="post" action="/auth/register" class="mt-3" id="registerForm" novalidate>
+    <div id="registerAlert" aria-live="polite"></div>
+    <label class="form-label" for="shopName">Shop name</label>
+    <input id="shopName" class="form-control" name="shopName" required maxlength="100" placeholder="Sri Lakshmi Stores" autocomplete="organization">
+    <label class="form-label mt-3" for="ownerName">Your name</label>
+    <input id="ownerName" class="form-control" name="ownerName" required maxlength="80" autocomplete="name">
+    <label class="form-label mt-3" for="email">Email</label>
+    <input id="email" class="form-control" type="email" name="email" required maxlength="254" placeholder="you@example.com" autocomplete="email">
+    <label class="form-label mt-3" for="password">Password</label>
+    <input id="password" class="form-control" type="password" name="password" required minlength="8" maxlength="72" autocomplete="new-password" aria-describedby="strengthText">
+    <div class="strength"><span id="strengthBar"></span></div>
+    <small id="strengthText" class="muted">At least 8 characters, with a capital letter and a number.</small>
+    <button class="btn btn-primary btn-lg w-100 mt-4">Create my khata</button>
   </form>
-  <p class="text-center muted mt-4">Already have an account? <a href="/auth/login">Sign in</a></p>
+  <p class="text-center muted mt-4 mb-0">Already registered? <a href="/auth/login">Sign in</a></p>
 </div></div>
 <%- include('../partials/footer') %>
