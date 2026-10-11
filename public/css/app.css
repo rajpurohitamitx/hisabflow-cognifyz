@@ -90,3 +90,45 @@ a,.btn,.nav-link,.panel-card,.stat-card,.follow-row,.mini-card,.form-control,.fo
 .link-btn:hover{text-decoration:underline}
 .phone-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px}
 .phone-form input{max-width:200px}
+
+/* ---- character pass: heading font, flatter app screens, icons ---- */
+:root{--font-head:'Sora','Inter',system-ui,sans-serif}
+h1,h2,h3,.page-title,.section-title,.display-title,.hero-number,.navbar-brand,.brand-lockup{font-family:var(--font-head)}
+.display-title,.hero-number,.phone-balance{font-family:var(--font-head)}
+.page-title{font-weight:700;letter-spacing:-.03em}
+.display-title{font-weight:700;letter-spacing:-.045em;line-height:1.05}
+.hero-number{font-weight:700}
+.ic{vertical-align:-2px}
+.activity-icon .ic{display:block}
+.phone-num{display:inline-flex;align-items:center;gap:6px}
+
+/* app screens: flatter, tighter corners (landing + auth keep the soft look) */
+.app-main .panel-card,.app-main .stat-card,.app-main .balance-box{border-radius:12px;box-shadow:none}
+.app-main .panel-card:hover,.app-main .stat-card:hover{box-shadow:none;border-color:#d4ddd2}
+.app-main .hero-summary{border-radius:14px;box-shadow:none}
+.app-main .rounded-pill{border-radius:9px!important}
+.app-main .form-control,.app-main .form-select{border-radius:9px}
+.app-main .parse-card{border-radius:12px}
+.app-main .activity-icon,.app-main .avatar{border-radius:9px}
+.app-main .chip{border-radius:8px}
+.app-main .entry-tab,.entry-switch{border-radius:10px}
+.app-main .status-pill,.app-main .priority{border-radius:6px}
+.app-nav .shop-chip{border-radius:9px}
+
+/* landing steps */
+.landing-steps{list-style:none;margin:56px 0 0;padding:28px 0 0;border-top:1px solid rgba(255,255,255,.12);display:grid;grid-template-columns:repeat(3,1fr);gap:28px;counter-reset:s}
+.landing-steps li{counter-increment:s;color:#bfd0c6;font-size:.95rem;line-height:1.5}
+.landing-steps li:before{content:counter(s,decimal-leading-zero);display:block;font:600 .8rem var(--font-head);color:var(--lime);margin-bottom:8px;letter-spacing:.06em}
+.landing-steps b{display:block;color:#fff;font:600 1.05rem var(--font-head);margin-bottom:6px}
+@media(max-width:767px){.landing-steps{grid-template-columns:1fr;gap:20px;margin-top:40px}.display-title{font-size:2.8rem}}
+
+/* ---- landing hero (matches approved design) ---- */
+.landing-shell{background:radial-gradient(circle at 88% 0%,rgba(80,120,70,.28),transparent 34%),#10241b}
+.landing-shell .eyebrow{color:#8fe0a8;font:600 1rem 'Inter',system-ui,sans-serif;letter-spacing:0;text-transform:none;margin-bottom:1.1rem}
+.landing-shell .display-title{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-weight:700;font-size:clamp(2.4rem,5.2vw,4.5rem);line-height:1.12;letter-spacing:-.03em;max-width:12.5em;color:#f7f9f5;margin-bottom:1.4rem}
+.landing-shell .display-title span{color:#d9f28c}
+.landing-shell .landing-copy{font-size:1.1rem;line-height:1.7;color:#c3d1c8;max-width:34rem;margin-top:0}
+.landing-shell .btn-primary{background:#176b4b;border-color:#176b4b}
+.landing-shell .btn-outline-light{border-color:rgba(255,255,255,.85)}
+.hero-cash{width:100%;max-width:460px;height:auto;display:block;margin-left:auto;filter:drop-shadow(0 18px 30px rgba(0,0,0,.25))}
+@media(max-width:767px){.landing-shell .display-title{font-size:2.4rem}}
