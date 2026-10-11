@@ -1,18 +1,17 @@
-# Task 1 — Forms, Express and EJS
+# Task 1 — Forms + Express + EJS
 
 ## Requirement covered
-HTML forms, Node.js/Express, form submission endpoints and server-side rendering with EJS.
+HTML forms, Node.js/Express server, form submission endpoints, server-side rendering with EJS.
 
-## HisabFlow implementation
-- `views/auth/register.ejs` — shop registration form.
-- `views/auth/login.ejs` — sign-in form.
-- `views/transactions/entry.ejs` — transaction entry screen.
-- `routes/auth.js` — registration and login endpoints.
-- `routes/web.js` — authenticated EJS page routes.
-- `server.js` — Express application, middleware and route setup.
+## HisaabFlow implementation
+- `app/views/auth/register.ejs` — HTML/EJS registration form.
+- `app/views/transactions/entry.ejs` — transaction form.
+- `app/routes/auth.js` — POST registration/login endpoints.
+- `app/routes/web.js` — EJS page routes.
+- `app/server.js` — Express application and body parsing.
 
 ## Demo flow
-Open `/auth/register` → enter shop details → submit the form → Express validates the request → the account is stored in MongoDB → the user is redirected to the dashboard.
+Open `/auth/register` → submit shop details → Express validates → MongoDB stores account → redirect to `/dashboard`.
 
-## What I would explain in an interview
-EJS renders the page on the server. The REST API used by the interactive parts of the application is kept separate from the normal EJS page routes.
+## Interview point
+Explain that EJS renders server-side HTML while the REST endpoints later provide JSON to the interactive frontend.

@@ -1,7 +1,7 @@
 <%- include('../partials/head') %>
 <div class="auth-shell"><div class="auth-card">
   <a class="brand-lockup" href="/"><img src="/img/logo.svg" alt="" class="brand-logo" width="34" height="34"><span>HisaabFlow</span></a>
-  <div class="mt-5"><h1 class="section-title">Create your shop account</h1><p class="muted">It takes a minute. Your customers and entries stay private to your shop.</p></div>
+  <div class="mt-5"><div class="eyebrow">Set up your shop</div><h1 class="section-title">Start with a cleaner khata.</h1><p class="muted">Your account keeps each shop's customers and transactions isolated.</p></div>
   <% if (error) { %><div class="alert alert-danger mt-4"><%= error %></div><% } %>
   <form method="post" action="/auth/register" class="mt-4" id="registerForm">
     <div id="registerAlert"></div>

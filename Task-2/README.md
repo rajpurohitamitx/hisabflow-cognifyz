@@ -3,7 +3,7 @@
 ## Requirement covered
 Complex forms, client-side validation, server-side validation and temporary server-side storage.
 
-## HisabFlow implementation
+## HisaabFlow implementation
 - Registration validates required fields, email format and password rules in both the browser and Express.
 - Transaction and customer forms use browser feedback before making a request.
 - Express validates every customer, transaction and amount again on the server.

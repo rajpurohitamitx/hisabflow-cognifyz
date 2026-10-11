@@ -6,7 +6,7 @@
   const hello = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
   const first = shop.ownerName.trim().split(' ')[0];
   const firstName = first.charAt(0).toUpperCase() + first.slice(1);
-%><h1 class="page-title"><%= hello %>, <%= firstName %>.</h1><p class="muted mb-0">Aaj inse paisa lena hai.</p></div>
+%><div class="eyebrow">Overview</div><h1 class="page-title"><%= hello %>, <%= firstName %>.</h1><p class="muted mb-0">Here is what needs your attention today.</p></div>
     <div class="d-flex gap-2"><a href="/entry" class="btn btn-primary rounded-pill px-4">+ Add transaction</a><a href="/daily-closing" class="btn btn-soft rounded-pill px-4">Daily closing</a></div>
   </div>
   <section class="hero-summary mb-4">
@@ -22,7 +22,7 @@
   <div class="row g-4">
     <div class="col-xl-8" id="followups">
       <div class="panel-card">
-        <div class="panel-head"><div><h2>Today's follow-ups</h2><p>Sorted by amount and days since last payment.</p></div></div>
+        <div class="panel-head"><div><h2>Today's follow-ups</h2><p>Prioritized using amount + time since payment.</p></div></div>
         <% if (!followUps.length) { %><div class="empty-state">No outstanding credit yet. Add your first transaction to build the follow-up list.</div><% } %>
         <div class="follow-list">
           <% followUps.slice(0, 6).forEach((item) => { %>
@@ -37,13 +37,13 @@
     </div>
     <div class="col-xl-4">
       <div class="panel-card natural-card">
-        <h2>Type an entry</h2><p class="muted">Write what happened. You'll see a preview before it saves.</p>
-        <div class="example-bubble">“Ramesh ne 2 kg chini liya, 50 diye”</div>
+        <div class="eyebrow">Quick entry</div><h2>Say it naturally.</h2><p class="muted">Type what happened. Review the parsed result before saving.</p>
+        <div class="example-bubble">“Ramesh took notebooks for 240 and paid 100.”</div>
         <a href="/entry#natural" class="btn btn-dark w-100 rounded-pill mt-3">Try natural entry →</a>
       </div>
       <div class="panel-card mt-4">
         <div class="panel-head"><div><h2>Recent activity</h2></div><a href="/entry" class="text-link">Add</a></div>
-        <% recent.forEach(tx => { %><div class="activity-row"><div class="activity-icon <%= tx.type %>"><%- tx.type === 'credit' ? '<svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>' : '<svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 7 7 17"/><path d="M17 17H7V7"/></svg>' %></div><div><b><%= tx.customerId?.name || 'Customer' %></b><small><%= tx.description || (tx.type === 'credit' ? 'Credit' : 'Payment') %></small></div><strong class="amt <%= tx.type === 'credit' ? 'text-credit' : 'text-payment' %>"><span class="amt-sign"><%= tx.type === 'credit' ? '−' : '+' %></span>₹<%= tx.amount.toLocaleString('en-IN') %></strong></div><% }) %>
+        <% recent.forEach(tx => { %><div class="activity-row"><div class="activity-icon <%= tx.type %>"><%= tx.type === 'credit' ? '↗' : '↘' %></div><div><b><%= tx.customerId?.name || 'Customer' %></b><small><%= tx.description || (tx.type === 'credit' ? 'Credit' : 'Payment') %></small></div><strong class="amt <%= tx.type === 'credit' ? 'text-credit' : 'text-payment' %>"><span class="amt-sign"><%= tx.type === 'credit' ? '−' : '+' %></span>₹<%= tx.amount.toLocaleString('en-IN') %></strong></div><% }) %>
       </div>
     </div>
   </div>

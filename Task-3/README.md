@@ -3,7 +3,7 @@
 ## Requirement covered
 Advanced CSS, responsive design, transitions/animations, Bootstrap.
 
-## HisabFlow implementation
+## HisaabFlow implementation
 - Bootstrap 5 grid, forms, buttons and responsive utilities.
 - `app/public/css/app.css` contains the product design system and responsive rules.
 - Mobile-first dashboard and entry screen.

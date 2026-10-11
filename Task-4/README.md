@@ -3,7 +3,7 @@
 ## Requirement covered
 Complex validation, password-strength interaction, dynamic DOM manipulation and client-side routing/interaction.
 
-## HisabFlow implementation
+## HisaabFlow implementation
 - Registration shows a live password-strength meter and enforces the same rules on the server.
 - Customer search filters the table in the browser without a reload.
 - The quick-sentence parser creates the preview card dynamically with DOM APIs.
