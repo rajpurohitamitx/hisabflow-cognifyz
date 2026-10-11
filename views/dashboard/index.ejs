@@ -10,7 +10,7 @@
     <div class="d-flex gap-2"><a href="/entry" class="btn btn-primary rounded-pill px-4">+ Add transaction</a><a href="/daily-closing" class="btn btn-soft rounded-pill px-4">Daily closing</a></div>
   </div>
   <section class="hero-summary mb-4">
-    <div><div class="eyebrow">Total outstanding</div><div class="hero-number">₹<%= stats.outstanding.toLocaleString('en-IN') %></div><p class="mb-0 summary-copy">Money currently sitting as customer credit.</p></div>
+    <div><div class="eyebrow">Total outstanding</div><div class="hero-number">₹<%= stats.outstanding.toLocaleString('en-IN') %></div><p class="mb-0 summary-copy">Money currently sitting as customer credit.<% if (stats.advance > 0) { %> ₹<%= stats.advance.toLocaleString('en-IN') %> more is held as customer advance.<% } %></p></div>
     <div class="summary-actions"><span class="pill-alert"><%= followUps.filter(x => x.level !== 'healthy').length %> need attention</span><a href="#followups" class="text-link">Review follow-ups →</a></div>
   </section>
   <div class="row g-3 mb-4">

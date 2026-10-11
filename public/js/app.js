@@ -136,6 +136,29 @@
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) document.querySelector('#parseNatural').click();
   });
 
+  // Add / edit a customer's phone number on the ledger page
+  const phoneLine = document.querySelector('#phoneLine');
+  if (phoneLine) {
+    const phoneForm = document.querySelector('#phoneForm');
+    const phoneInput = document.querySelector('#phoneInput');
+    const phoneMsg = document.querySelector('#phoneMsg');
+    const showForm = (open) => { phoneForm.classList.toggle('d-none', !open); phoneLine.classList.toggle('d-none', open); if (open) phoneInput.focus(); };
+    phoneLine.addEventListener('click', (event) => { if (event.target.id === 'phoneEdit') showForm(true); });
+    document.querySelector('#phoneCancel').addEventListener('click', () => { phoneMsg.textContent = ''; showForm(false); });
+    phoneForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const value = phoneInput.value.trim();
+      const digits = value.replace(/\D/g, '');
+      if (value && (digits.length < 7 || digits.length > 15)) return message(phoneMsg, 'Enter a valid phone number (7–15 digits).', 'danger');
+      try {
+        await readJson(await fetch(`/api/customers/${phoneLine.dataset.customer}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: value })
+        }));
+        window.location.reload();
+      } catch (error) { message(phoneMsg, error.message, 'danger'); }
+    });
+  }
+
   const parseButton = document.querySelector('#parseNatural');
   if (parseButton) parseButton.addEventListener('click', async () => {
     const input = document.querySelector('#naturalText');
@@ -189,7 +212,8 @@
       const cells = [];
       if (body.credit > 0) cells.push(['Credit given', `\u2212${money(body.credit)}`, 'text-due']);
       if (body.payment > 0) cells.push(['Payment received', `+${money(body.payment)}`, 'text-payment']);
-      if (body.existingCustomer || body.credit > 0) cells.push([body.existingCustomer ? 'Due after this entry' : 'Due', money(Math.max(0, body.after)), body.after > 0 ? 'text-due' : 'text-payment']);
+      if (body.after < 0) cells.push(['Advance kept for next purchase', `\u2212${money(Math.abs(body.after))}`, 'text-payment']);
+      else if (body.existingCustomer || body.credit > 0) cells.push([body.existingCustomer ? 'Due after this entry' : 'Due', money(body.after), body.after > 0 ? 'text-due' : 'text-payment']);
       if (body.occurredAt) cells.push(['Date', new Date(body.occurredAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }), '']);
       cells.forEach(([label, value, cls]) => {
         const cell = document.createElement('div');

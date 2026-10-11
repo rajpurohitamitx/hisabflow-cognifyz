@@ -368,6 +368,8 @@ function parseTransaction(text, options = {}) {
   if (!credit && items.length && !pay.payment) return { ok: false, error: `Found ${describeItems(items)} but no price. Add the price, e.g. “… for 90” or “… at 45 each”.` };
   if (!credit && !pay.payment && !settleAll) return { ok: false, error: 'Could not find an amount. Try “Ramesh paid 500” or “Ramesh took 2 kg sugar at 45”.' };
 
+  if (credit > 0 && pay.payment > credit) hints.push(`${fmtMoney(round2(pay.payment - credit))} extra will be kept as ${customer}'s advance and adjusted in the next purchase.`);
+
   const description = items.length ? describeItems(items) : '';
   return {
     ok: true,

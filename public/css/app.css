@@ -86,3 +86,7 @@ a,.btn,.nav-link,.panel-card,.stat-card,.follow-row,.mini-card,.form-control,.fo
 .text-due{color:#b3453f}
 .text-payment{color:#17704c}
 .new-customer-fields{margin-top:12px;padding:14px;border:1px dashed #b9cdb4;border-radius:14px;background:#f6faf3}
+.link-btn{background:none;border:0;padding:0;color:var(--green);font-weight:600;font-size:.85rem;cursor:pointer}
+.link-btn:hover{text-decoration:underline}
+.phone-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.phone-form input{max-width:200px}

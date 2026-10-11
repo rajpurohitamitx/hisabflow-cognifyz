@@ -4,6 +4,7 @@ const Customer = require('../models/Customer');
 const Transaction = require('../models/Transaction');
 const { requireApiAuth } = require('../middleware/auth');
 const { getFollowUps } = require('../services/followUps');
+const { getTotals } = require('../services/balances');
 const { parseTransaction } = require('../services/naturalLanguage');
 const { createDraft, getDraft, removeDraft } = require('../services/draftStore');
 
@@ -26,17 +27,29 @@ router.post('/customers', async (req, res) => {
   const phone = cleanText(req.body.phone, 20);
   const notes = cleanText(req.body.notes, 300);
   if (name.length < 2) return res.status(400).json({ error: 'Customer name must be at least 2 characters.' });
+  if (phone && !/^\+?[\d\s-]{7,20}$/.test(phone)) return res.status(400).json({ error: 'Enter a valid phone number (digits only, 7–15 digits).' });
   const customer = await Customer.create({ shopId: req.shop._id, name, phone, notes });
   res.status(201).json({ customer });
 });
 
 router.put('/customers/:id', async (req, res) => {
   if (!validId(req.params.id)) return res.status(400).json({ error: 'Invalid customer id.' });
-  const name = cleanText(req.body.name, 80);
-  if (name.length < 2) return res.status(400).json({ error: 'Customer name must be at least 2 characters.' });
+  const update = {};
+  if (req.body.name !== undefined) {
+    const name = cleanText(req.body.name, 80);
+    if (name.length < 2) return res.status(400).json({ error: 'Customer name must be at least 2 characters.' });
+    update.name = name;
+  }
+  if (req.body.phone !== undefined) {
+    const phone = cleanText(req.body.phone, 20);
+    if (phone && !/^\+?[\d\s-]{7,20}$/.test(phone)) return res.status(400).json({ error: 'Enter a valid phone number (digits only, 7–15 digits).' });
+    update.phone = phone;
+  }
+  if (req.body.notes !== undefined) update.notes = cleanText(req.body.notes, 300);
+  if (!Object.keys(update).length) return res.status(400).json({ error: 'Nothing to update.' });
   const customer = await Customer.findOneAndUpdate(
     { _id: req.params.id, shopId: req.shop._id, archived: false },
-    { $set: { name, phone: cleanText(req.body.phone, 20), notes: cleanText(req.body.notes, 300) } },
+    { $set: update },
     { new: true, runValidators: true }
   );
   if (!customer) return res.status(404).json({ error: 'Customer not found.' });
@@ -99,14 +112,14 @@ router.get('/dashboard', async (req, res) => {
     { $group: { _id: '$type', total: { $sum: '$amount' } } }
   ]);
   const map = Object.fromEntries(grouped.map(x => [x._id, x.total]));
-  const followUps = await getFollowUps(req.shop._id);
-  res.json({ credit: map.credit || 0, payments: map.payment || 0, outstanding: Math.max(0, (map.credit || 0) - (map.payment || 0)), attention: followUps.filter(x => x.level !== 'healthy').length, followUps });
+  const [followUps, totals] = await Promise.all([getFollowUps(req.shop._id), getTotals(req.shop._id)]);
+  res.json({ credit: map.credit || 0, payments: map.payment || 0, outstanding: totals.outstanding, advance: totals.advance, attention: followUps.filter(x => x.level !== 'healthy').length, followUps });
 });
 
 async function outstandingFor(shopId, customerId) {
   const rows = await Transaction.aggregate([{ $match: { shopId, customerId } }, { $group: { _id: '$type', total: { $sum: '$amount' } } }]);
   const map = Object.fromEntries(rows.map(x => [x._id, x.total]));
-  return Math.max(0, (map.credit || 0) - (map.payment || 0));
+  return Math.round(((map.credit || 0) - (map.payment || 0)) * 100) / 100; // negative = advance held for the customer
 }
 
 function findCustomer(shopId, name) {
@@ -120,7 +133,7 @@ router.post('/natural-language/parse', async (req, res) => {
 
   if (parsed.settleAll) {
     const customer = await findCustomer(req.shop._id, parsed.customer);
-    const due = customer ? await outstandingFor(req.shop._id, customer._id) : 0;
+    const due = customer ? Math.max(0, await outstandingFor(req.shop._id, customer._id)) : 0;
     if (!due) return res.status(400).json({ ok: false, error: `${parsed.customer} has nothing outstanding to settle.` });
     parsed.payment = due;
     parsed.net = Math.round((parsed.credit - due) * 100) / 100;
