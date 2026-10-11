@@ -127,8 +127,17 @@ router.post('/natural-language/parse', async (req, res) => {
     parsed.hints.push(`“Paid in full” was read as the full outstanding amount (₹${due.toLocaleString('en-IN')}).`);
   }
 
+  // What the customer owes today, so the preview can show the balance after this entry
+  let previous = 0;
+  const found = await findCustomer(req.shop._id, parsed.customer);
+  if (found) previous = await outstandingFor(req.shop._id, found._id);
+  const after = Math.round((previous + parsed.net) * 100) / 100;
+  if (found && parsed.remaining !== null && parsed.remaining !== undefined && after !== parsed.remaining && !parsed.items.length) {
+    parsed.hints.push(`Ledger shows ₹${after.toLocaleString('en-IN')} due after this payment, not ₹${parsed.remaining.toLocaleString('en-IN')}.`);
+  }
+
   const draftId = createDraft(req.shop._id, parsed);
-  res.json({ ...parsed, draftId, existingCustomer: parsed.customerKnown });
+  res.json({ ...parsed, draftId, existingCustomer: !!found, previous, after });
 });
 
 router.post('/natural-language/save', async (req, res) => {

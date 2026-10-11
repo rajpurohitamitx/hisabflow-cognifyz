@@ -67,21 +67,50 @@
   });
 
   const txForm = document.querySelector('#transactionForm');
-  if (txForm) txForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!txForm.reportValidity()) return;
-    const amount = Number(txForm.elements.amount.value);
-    if (!Number.isFinite(amount) || amount <= 0) return message(document.querySelector('#txMessage'), 'Enter an amount greater than ₹0.', 'danger');
+  if (txForm) {
+    const customerSelect = txForm.elements.customerId;
+    const newFields = document.querySelector('#newCustomerFields');
+    const newName = document.querySelector('#inlineCustomerName');
+    const newPhone = document.querySelector('#inlineCustomerPhone');
+    const syncNew = () => {
+      const isNew = customerSelect.value === '__new__';
+      newFields.classList.toggle('d-none', !isNew);
+      if (isNew) newName.focus();
+    };
+    customerSelect.addEventListener('change', syncNew);
 
-    try {
-      const body = await readJson(await fetch('/api/transactions', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Object.fromEntries(new FormData(txForm)))
-      }));
-      message(document.querySelector('#txMessage'), `Saved ${money(body.transaction.amount)} ${body.transaction.type === 'credit' ? 'credit' : 'payment'}.`);
-      txForm.reset();
-    } catch (error) { message(document.querySelector('#txMessage'), error.message, 'danger'); }
-  });
+    txForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!txForm.reportValidity()) return;
+      const out = document.querySelector('#txMessage');
+      const amount = Number(txForm.elements.amount.value);
+      if (!Number.isFinite(amount) || amount <= 0) return message(out, 'Enter an amount greater than ₹0.', 'danger');
+
+      const submit = txForm.querySelector('button');
+      submit.disabled = true;
+      try {
+        const data = Object.fromEntries(new FormData(txForm));
+        let createdName = '';
+        if (data.customerId === '__new__') {
+          const name = newName.value.trim();
+          if (name.length < 2) { newName.focus(); throw new Error('Enter the new customer\'s name (at least 2 characters).'); }
+          const made = await readJson(await fetch('/api/customers', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, phone: newPhone.value.trim() })
+          }));
+          data.customerId = made.customer._id;
+          createdName = made.customer.name;
+          const option = new Option(made.customer.name, made.customer._id);
+          customerSelect.add(option, customerSelect.options[2] || null);
+        }
+        const body = await readJson(await fetch('/api/transactions', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        }));
+        message(out, `Saved ${money(body.transaction.amount)} ${body.transaction.type === 'credit' ? 'credit' : 'payment'}${createdName ? ` for new customer ${createdName}` : ''}.`);
+        txForm.reset(); newName.value = ''; newPhone.value = ''; syncNew();
+      } catch (error) { message(out, error.message, 'danger'); }
+      finally { submit.disabled = false; }
+    });
+  }
 
   const customerForm = document.querySelector('#customerForm');
   if (customerForm) customerForm.addEventListener('submit', async (event) => {
@@ -95,15 +124,12 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(Object.fromEntries(new FormData(customerForm)))
       }));
-      message(document.querySelector('#customerMessage'), `${body.customer.name} was added. Refresh the entry list when you are ready to record a transaction.`);
+      message(document.querySelector('#customerMessage'), `${body.customer.name} was added. You can now pick them in the customer list.`);
+      const sel = document.querySelector('#customerId');
+      if (sel) sel.add(new Option(body.customer.name, body.customer._id), sel.options[2] || null);
       customerForm.reset();
     } catch (error) { message(document.querySelector('#customerMessage'), error.message, 'danger'); }
   });
-
-  document.querySelectorAll('[data-example]').forEach(chip => chip.addEventListener('click', () => {
-    const box = document.querySelector('#naturalText');
-    if (box) { box.value = chip.dataset.example; box.focus(); }
-  }));
 
   const naturalBox = document.querySelector('#naturalText');
   if (naturalBox) naturalBox.addEventListener('keydown', (event) => {
@@ -161,9 +187,9 @@
       const grid = document.createElement('div');
       grid.className = 'parse-grid';
       const cells = [];
-      if (body.credit > 0) cells.push(['Credit given', `+${money(body.credit)}`, 'text-credit']);
-      if (body.payment > 0) cells.push(['Payment received', `\u2212${money(body.payment)}`, 'text-payment']);
-      cells.push(['Net change', `${body.net < 0 ? '\u2212' : '+'}${money(Math.abs(body.net))}`, '']);
+      if (body.credit > 0) cells.push(['Credit given', `\u2212${money(body.credit)}`, 'text-due']);
+      if (body.payment > 0) cells.push(['Payment received', `+${money(body.payment)}`, 'text-payment']);
+      if (body.existingCustomer || body.credit > 0) cells.push([body.existingCustomer ? 'Due after this entry' : 'Due', money(Math.max(0, body.after)), body.after > 0 ? 'text-due' : 'text-payment']);
       if (body.occurredAt) cells.push(['Date', new Date(body.occurredAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }), '']);
       cells.forEach(([label, value, cls]) => {
         const cell = document.createElement('div');

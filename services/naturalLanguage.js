@@ -195,6 +195,18 @@ function extractPayments(norm) {
   return { payment: round2(payment), rest };
 }
 
+
+/** "remaining is 50", "50 baki", "balance 50 left" – what is still due AFTER the payment in this sentence. */
+function extractRemaining(norm) {
+  const words = '(?:remaining|remains|remaining balance|left|pending|balance|due|outstanding|baki|baaki|bacha|bache|bachha|shesh|बाकी|बचा)';
+  const num = '¤?(\\d+(?:\\.\\d+)?)';
+  const A = new RegExp(`(?<![${L}])${words}(?![${L}])\\s*(?:is|are|was|will be|=|:|hai|rahe|raha|rahi|hain|है)?\\s*(?:only|just|rs|to pay|to be paid)?\\s*${num}(?!\\d|\\.\\d)`, 'iu');
+  const B = new RegExp(`${num}(?!\\d|\\.\\d)\\s*(?:rs\\s*)?(?:is\\s+|are\\s+)?${words}(?![${L}])`, 'iu');
+  const m = norm.match(A) || norm.match(B);
+  if (!m) return null;
+  return { amount: parseFloat(m[1]), rest: norm.replace(m[0], ' | ') };
+}
+
 function paymentMethod(norm) {
   if (/\b(upi|gpay|google pay|phonepe|paytm|bhim)\b/.test(norm)) return 'UPI';
   if (/\b(cash|naqad|nakad)\b/.test(norm)) return 'cash';
@@ -291,7 +303,14 @@ function parseTransaction(text, options = {}) {
   const nameWords = new Set(customer.toLowerCase().split(/\s+/).filter(Boolean));
 
   const method = paymentMethod(norm);
-  const pay = extractPayments(norm);
+  let pay = extractPayments(norm);
+  let remaining = null;
+  const rem = extractRemaining(norm);
+  if (rem) {
+    const withRem = extractPayments(rem.rest);
+    // "remaining" only means "still due after paying" when a payment is also mentioned
+    if (withRem.payment > 0) { pay = withRem; remaining = rem.amount; }
+  }
   const settleAll = pay.payment === 0 && wantsSettleAll(norm);
 
   // Credit side
@@ -325,6 +344,23 @@ function parseTransaction(text, options = {}) {
     credit = round2(priced.reduce((a, i) => a + i.total, 0));
   }
 
+  if (remaining !== null) {
+    const implied = round2(pay.payment + remaining);
+    if (!credit && !items.length) {
+      hints.push(`${fmtMoney(remaining)} is what should be left on the ledger after this payment.`);
+    } else if (!credit) {
+      credit = implied;
+      hints.push(`Bill worked out as paid ${fmtMoney(pay.payment)} + remaining ${fmtMoney(remaining)} = ${fmtMoney(implied)}.`);
+    } else if (credit !== implied) {
+      hints.push(`You said ${fmtMoney(remaining)} remains, which doesn't match the bill (${fmtMoney(credit)} − ${fmtMoney(pay.payment)} = ${fmtMoney(round2(credit - pay.payment))}). Please check the amounts.`);
+    }
+  }
+  // one item with no price but a known bill: the bill is that item's price
+  if (items.length === 1 && items[0].total === null && credit > 0) {
+    const it = items[0];
+    items = [{ ...it, total: credit, price: round2(credit / (it.qty || 1)) }];
+  }
+
   if (!customer) return { ok: false, error: 'Could not tell which customer this is. Add a name, e.g. “Ramesh took 2 kg sugar for 90”.' };
   if (!credit && items.length && !pay.payment) return { ok: false, error: `Found ${describeItems(items)} but no price. Add the price, e.g. “… for 90” or “… at 45 each”.` };
   if (!credit && !pay.payment && !settleAll) return { ok: false, error: 'Could not find an amount. Try “Ramesh paid 500” or “Ramesh took 2 kg sugar at 45”.' };
@@ -334,6 +370,7 @@ function parseTransaction(text, options = {}) {
     ok: true,
     customer,
     customerKnown: !!who.known,
+    remaining,
     items,
     credit,
     payment: pay.payment,

@@ -14,8 +14,8 @@
     <div class="summary-actions"><span class="pill-alert"><%= followUps.filter(x => x.level !== 'healthy').length %> need attention</span><a href="#followups" class="text-link">Review follow-ups →</a></div>
   </section>
   <div class="row g-3 mb-4">
-    <div class="col-6 col-xl-3"><div class="stat-card"><span>Credit given</span><strong>₹<%= stats.credit.toLocaleString('en-IN') %></strong><small>All recorded credit</small></div></div>
-    <div class="col-6 col-xl-3"><div class="stat-card"><span>Payments received</span><strong>₹<%= stats.payments.toLocaleString('en-IN') %></strong><small>All recorded payments</small></div></div>
+    <div class="col-6 col-xl-3"><div class="stat-card"><span>Credit given</span><strong class="text-due">₹<%= stats.credit.toLocaleString('en-IN') %></strong><small>All recorded credit</small></div></div>
+    <div class="col-6 col-xl-3"><div class="stat-card"><span>Payments received</span><strong class="text-payment">₹<%= stats.payments.toLocaleString('en-IN') %></strong><small>All recorded payments</small></div></div>
     <div class="col-6 col-xl-3"><div class="stat-card"><span>Customers</span><strong><%= stats.customers %></strong><small>Active customer accounts</small></div></div>
     <div class="col-6 col-xl-3"><div class="stat-card"><span>Needs attention</span><strong><%= followUps.filter(x => x.level !== 'healthy').length %></strong><small>Based on explainable rules</small></div></div>
   </div>
@@ -29,7 +29,7 @@
             <article class="follow-row <%= item.level %>">
               <div class="avatar"><%= item.name.slice(0,1).toUpperCase() %></div>
               <div class="follow-main"><div class="d-flex align-items-center gap-2"><h3><%= item.name %></h3><span class="priority priority-<%= item.level %>"><%= item.level === 'urgent' ? 'High attention' : item.level === 'watch' ? 'Watch' : 'Low' %></span></div><p><%= item.daysSincePayment %> days since last payment</p><div class="why"><strong>Why?</strong> <%= item.reasons.join(' · ') %></div></div>
-              <div class="follow-right"><strong>₹<%= item.balance.toLocaleString('en-IN') %></strong><div class="d-flex gap-2 mt-2"><a class="btn btn-sm btn-soft" href="/customers/<%= item.customerId %>">View</a><% if (item.phone) { %><a class="btn btn-sm btn-primary" target="_blank" rel="noopener" href="https://wa.me/<%= item.phone.replace(/\D/g,'') %>?text=<%= encodeURIComponent(`Hi ${item.name}, your pending amount is ₹${item.balance.toLocaleString('en-IN')}. Please settle it when convenient. Thank you.`) %>">Remind</a><% } %></div></div>
+              <div class="follow-right"><strong class="text-due">₹<%= item.balance.toLocaleString('en-IN') %></strong><div class="d-flex gap-2 mt-2"><a class="btn btn-sm btn-soft" href="/customers/<%= item.customerId %>">View</a><% if (item.phone) { %><a class="btn btn-sm btn-primary" target="_blank" rel="noopener" href="https://wa.me/<%= item.phone.replace(/\D/g,'') %>?text=<%= encodeURIComponent(`Hi ${item.name}, your pending amount is ₹${item.balance.toLocaleString('en-IN')}. Please settle it when convenient. Thank you.`) %>">Remind</a><% } %></div></div>
             </article>
           <% }) %>
         </div>
@@ -43,7 +43,7 @@
       </div>
       <div class="panel-card mt-4">
         <div class="panel-head"><div><h2>Recent activity</h2></div><a href="/entry" class="text-link">Add</a></div>
-        <% recent.forEach(tx => { %><div class="activity-row"><div class="activity-icon <%= tx.type %>"><%= tx.type === 'credit' ? '↗' : '↘' %></div><div><b><%= tx.customerId?.name || 'Customer' %></b><small><%= tx.description || (tx.type === 'credit' ? 'Credit' : 'Payment') %></small></div><strong class="amt <%= tx.type === 'credit' ? 'text-credit' : 'text-payment' %>"><span class="amt-sign"><%= tx.type === 'credit' ? '+' : '−' %></span>₹<%= tx.amount.toLocaleString('en-IN') %></strong></div><% }) %>
+        <% recent.forEach(tx => { %><div class="activity-row"><div class="activity-icon <%= tx.type %>"><%= tx.type === 'credit' ? '↗' : '↘' %></div><div><b><%= tx.customerId?.name || 'Customer' %></b><small><%= tx.description || (tx.type === 'credit' ? 'Credit' : 'Payment') %></small></div><strong class="amt <%= tx.type === 'credit' ? 'text-credit' : 'text-payment' %>"><span class="amt-sign"><%= tx.type === 'credit' ? '−' : '+' %></span>₹<%= tx.amount.toLocaleString('en-IN') %></strong></div><% }) %>
       </div>
     </div>
   </div>

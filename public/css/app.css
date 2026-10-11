@@ -75,9 +75,6 @@ a,.btn,.nav-link,.panel-card,.stat-card,.follow-row,.mini-card,.form-control,.fo
 .activity-row small,.timeline-row small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .activity-row>div:nth-child(2){min-width:0}
 .natural-card h2{letter-spacing:-.02em}
-.example-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.chip{border:1px solid #dbe5d8;background:#fff;color:#44524a;border-radius:999px;padding:.35rem .75rem;font-size:.78rem;cursor:pointer;transition:background-color .15s,border-color .15s}
-.chip:hover{background:#eef5ea;border-color:#b9cdb4}
 .parse-name{display:block;margin:12px 0 4px}
 .parse-name small{display:block;color:var(--muted);font-size:.7rem;margin-bottom:3px}
 .parse-items{background:#fff;border-radius:12px;padding:4px 12px;margin:8px 0}
@@ -85,11 +82,7 @@ a,.btn,.nav-link,.panel-card,.stat-card,.follow-row,.mini-card,.form-control,.fo
 .parse-item:last-child{border-bottom:0}
 .parse-item small{color:var(--muted);margin-left:6px}
 .parse-hint{font-size:.75rem;color:#7a5e1d;background:#fff7e3;border-radius:10px;padding:.45rem .6rem;margin:0 0 10px}
-.hero-demo{background:#f8faf6;color:var(--ink);border-radius:30px;padding:20px;max-width:380px;margin:auto;animation:hf-in .35s ease both}
-.demo-bubble{margin:16px 0 14px;background:#e3efdc;border-radius:16px 16px 16px 4px;padding:12px 14px;font-size:.92rem;line-height:1.4}
-.demo-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
-.demo-row{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin-top:8px;background:#fff}
-.demo-row span{display:flex;flex-direction:column}.demo-row small{color:var(--muted);font-size:.72rem}
-.demo-sum{display:flex;justify-content:space-between;padding:8px 4px 0;font-size:.88rem;color:#4b5a51}
-.demo-sum.total{margin-top:6px;padding-top:10px;border-top:1px dashed #cfd9cc;font-weight:700;color:var(--ink);font-size:1rem}
-@media(max-width:767px){.hero-demo{max-width:330px}}
+
+.text-due{color:#b3453f}
+.text-payment{color:#17704c}
+.new-customer-fields{margin-top:12px;padding:14px;border:1px dashed #b9cdb4;border-radius:14px;background:#f6faf3}
