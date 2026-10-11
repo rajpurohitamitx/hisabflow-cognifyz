@@ -29,12 +29,15 @@ const SEPARATORS = new Set(['and', 'aur', 'plus', 'also', 'then', 'और', ',',
 const POSTPOSITIONS = new Set(['ne', 'ko', 'se', 'ने', 'को', 'से']);
 const LEAD_SKIP = new Set(['today', 'aaj', 'आज', 'yesterday', 'kal', 'please', 'plz', 'add', 'new', 'entry', 'note', 'record', 'customer', 'party',
   'mr', 'mrs', 'ms', 'shri', 'shree', 'bhai', 'bhaiya', 'uncle', 'aunty', 'sir', 'madam']);
-const ACTION_WORDS = new Set(['took', 'take', 'taken', 'takes', 'bought', 'buy', 'buys', 'got', 'get', 'gets', 'purchased', 'purchase', 'borrowed', 'borrow',
+const ACTION_WORDS = new Set(['grabbed', 'picked', 'eduthan', 'eduthen', 'eduthaan', 'eduthachu', 'eduthar', 'vanginar', 'vanginaar', 'vanginan', 'vanginen', 'vangittan', 'vangitaan', 'vangitten', 'vaangittan', 'vaangi', 'vaanginaar', 'vaanginen', 'kuduthen', 'kuduthan', 'kuduthaen', 'kuduthar', 'kudukuren', 'kuduthachu', 'kudutha', 'panniten', 'pannitan', 'pannen', 'pannitaan', 'aayiduchu', 'aachu', 'வாங்கினார்', 'வாங்கினான்', 'வாங்கினேன்', 'எடுத்தான்', 'எடுத்தேன்', 'கொடுத்தேன்', 'கொடுத்தார்', 'took', 'take', 'taken', 'takes', 'bought', 'buy', 'buys', 'got', 'get', 'gets', 'purchased', 'purchase', 'borrowed', 'borrow',
   'owes', 'owe', 'owed', 'has', 'had', 'have', 'is', 'was', 'will', 'wants', 'want', 'needs', 'need', 'ordered', 'order', 'picked', 'collected', 'sold',
   'liya', 'liye', 'lia', 'le', 'lekar', 'gaya', 'gayi', 'gaye', 'kharida', 'kharidi', 'khareeda', 'udhaar', 'udhar', 'udhari', 'tha', 'thi', 'hai', 'लिया', 'ली', 'लिये', 'खरीदा',
   ...PAY_VERBS, ...POSTPOSITIONS]);
 
+const NAME_FOLLOWERS = new Set(['ke', 'ka', 'ki', 'ku', 'kku', 'ukku', 'la', 'da', 'ne', 'ko', 'se', 'bought', 'grabbed', 'purchased']);
 const STOP = new Set([
+  // Tamil / Tanglish fillers
+  'ku', 'kku', 'ukku', 'la', 'il', 'ila', 'da', 'di', 'macha', 'machan', 'machi', 'boss', 'bro', 'anna', 'akka', 'ippo', 'nethu', 'netru', 'inniki', 'ellam', 'mothama', 'moththam', 'kaasu', 'kasu', 'rubai', 'roobai', 'ruba', 'bucks', 'buck', 'vilai', 'meedhi', 'meethi', 'adjust', 'handover', 'deal', 'set', 'settle', 'buy', 'purchase', 'purchased', 'bought', 'grabbed', 'ho', 'kar', 'gaya', 'ok', 'okay', 'rs', 'ரூபாய்', 'ரூ', 'க்கு', 'ல', 'நேற்று',
   // English fillers & verbs
   'items', 'item', 'things', 'thing', 'stuff', 'goods', 'products', 'product', 'some', 'few', 'the', 'a', 'an', 'and', 'or', 'for', 'to', 'from', 'by', 'of',
   'on', 'in', 'at', 'with', 'worth', 'total', 'bill', 'credit', 'debit', 'amount', 'balance', 'due', 'rs', 'rupees', 'rupee', 'inr', 'today', 'yesterday',
@@ -56,7 +59,7 @@ const STOP = new Set([
 
 const MONTHLESS_DATES = [
   { re: /\b(?:day before yesterday|parso|parson)\b|परसों/, days: 2 },
-  { re: /\b(?:yesterday|kal)\b|कल/, days: 1 }
+  { re: /\b(?:yesterday|kal|nethu|netru)\b|कल|நேற்று/u, days: 1 }
 ];
 
 function round2(n) { return Math.round((Number(n) + Number.EPSILON) * 100) / 100; }
@@ -79,8 +82,8 @@ function normalise(text) {
   // "45/kg", "45 / kg"
   s = s.replace(/(\d+(?:\.\d+)?)\s*\/\s*(?=[a-z]{1,8}\b)/g, '$1 per ');
   // currency markers
-  s = s.replace(/(?:₹|\brs\.?|\binr\b)\s*(\d+(?:\.\d+)?)/g, '¤$1');
-  s = s.replace(/(\d+(?:\.\d+)?)\s*(?:₹|\/-|\brs\b\.?|\brupees?\b|\brupaye\b|\brupay\b|\brupiya\b|\binr\b|रुपये|रुपए)/gu, '¤$1');
+  s = s.replace(/(?:₹|\brs\.?|\binr\b|ரூ)\s*(\d+(?:\.\d+)?)/g, '¤$1');
+  s = s.replace(/(\d+(?:\.\d+)?)\s*(?:₹|\/-|rs(?![\p{L}])\.?|rupees?(?![\p{L}])|rupaye(?![\p{L}])|rupay(?![\p{L}])|rupiya(?![\p{L}])|rubai(?![\p{L}])|roobai(?![\p{L}])|ruba(?![\p{L}])|bucks?(?![\p{L}])|inr(?![\p{L}])|रुपये|रुपए|ரூபாய்|ரூ)/gu, '¤$1');
   return s.replace(/\s+/g, ' ').trim();
 }
 
@@ -125,7 +128,7 @@ function pickCustomer(norm, original, tokens, knownCustomers) {
   const afterLead = tokens[s + lead.length];
 
   // 2. "Ramesh took…", "nikhil paid…", "Mohan se…", "Anita ne…"
-  if (lead.length && afterLead && afterLead.t === 'w' && ACTION_WORDS.has(afterLead.v)) return { name: clean(lead) };
+  if (lead.length && afterLead && afterLead.t === 'w' && (ACTION_WORDS.has(afterLead.v) || NAME_FOLLOWERS.has(afterLead.v))) return { name: clean(lead) };
 
   // 3. "<name> ne/ko/se" anywhere
   for (let i = 1; i < tokens.length; i++) {
@@ -250,7 +253,7 @@ function parseSegment(tokens, nameWords) {
       const n = bare[0];
       const wordBefore = itemWords.length && firstItemWordIdx < n.i;
       const wordAfter = itemWords.length && firstItemWordIdx > n.i;
-      if (wordAfter && !wordBefore && !hasTotalWord && n.v < 1000 && Number.isInteger(n.v) && !hasCue) qty = n.v;
+      if (wordAfter && !wordBefore && !hasTotalWord && n.v <= 30 && Number.isInteger(n.v) && !hasCue) qty = n.v;
       else price = n.v;
     }
   } else if (qty !== null && price === null) {
