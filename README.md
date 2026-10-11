@@ -13,4 +13,3 @@ Canonical runnable application for Cognifyz Tasks 1–6.
 - `public/js/` — client-side validation, DOM updates, Fetch calls and hash routing
 - `scripts/` — optional demo-data seed
 
-The code is intentionally straightforward so each part can be explained in an interview.
