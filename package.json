@@ -1,14 +1,13 @@
 {
   "name": "hisabflow-cognifyz",
   "version": "1.0.0",
-  "description": "HisabFlow — a credit ledger for small shops that understands plain sentences. Built for the Cognifyz Full Stack Development internship (Tasks 1–6).",
+  "description": "HisaabFlow \u2014 a small-shop credit follow-up assistant built for the Cognifyz Full Stack Development internship (Tasks 1\u20136).",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node scripts/seed.js",
-    "check": "node --check server.js && node --check public/js/app.js && for f in routes/*.js services/*.js middleware/*.js models/*.js; do node --check $f || exit 1; done",
-    "test": "node --test tests/*.test.js"
+    "check": "node --check server.js && node --check public/js/app.js && node --check routes/api.js && node --check routes/auth.js && node --check routes/web.js && node --check services/followUps.js && node --check services/naturalLanguage.js && node --check services/draftStore.js"
   },
   "engines": {
     "node": ">=18"

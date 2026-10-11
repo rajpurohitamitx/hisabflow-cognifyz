@@ -1,61 +1,47 @@
 <%- include('../partials/head') %><%- include('../partials/nav') %>
 <main class="container-fluid px-3 px-lg-4 py-4 app-main">
-  <div class="page-head"><div><h1 class="page-title">Add an entry</h1><p class="page-lead">Type it like you’d say it, or fill in the form. Nothing is saved until you confirm.</p></div></div>
+  <div class="mb-4"><div class="eyebrow">Transaction desk</div><h1 class="page-title">Record what happened.</h1><p class="muted mb-0">Use the form when you want control, or describe the sale in one sentence.</p></div>
 
-  <nav class="tabs" aria-label="Entry mode">
-    <a href="#natural" data-entry-route="natural" class="tab">Type it</a>
-    <a href="#structured" data-entry-route="structured" class="tab">Fill the form</a>
-  </nav>
+  <div class="entry-switch" aria-label="Entry mode">
+    <a href="#structured" data-entry-route="structured" class="entry-tab">Structured entry</a>
+    <a href="#natural" data-entry-route="natural" class="entry-tab">Quick sentence</a>
+  </div>
 
   <div class="row g-4">
-    <div class="col-lg-7 entry-panel" data-entry-panel="natural">
-      <div class="sheet">
-        <h2 class="sheet-title">Say what happened</h2>
-        <p class="sheet-sub">Customer, items, quantity, rate and payment — in any order.</p>
-        <label class="visually-hidden" for="naturalText">Describe the entry</label>
-        <textarea id="naturalText" class="form-control natural-input" rows="4" maxlength="300" placeholder="Meena took 2 kg sugar at 45 and a litre of oil for 130, paid 100"></textarea>
-        <ul class="examples" aria-label="Examples to try">
-          <li><button type="button" class="example-chip">Meena took rice 5 kg 300</button></li>
-          <li><button type="button" class="example-chip">3 notebooks at 40 each for Ravi</button></li>
-          <li><button type="button" class="example-chip">received 500 from Anita</button></li>
-          <li><button type="button" class="example-chip">Kumar udhaar 250, paid 100</button></li>
-          <li><button type="button" class="example-chip">Priya cleared her dues</button></li>
-        </ul>
-        <button id="parseNatural" class="btn btn-primary btn-lg mt-3">Review entry</button>
-        <div id="naturalResult" class="mt-3" aria-live="polite"></div>
-      </div>
-    </div>
-
     <div class="col-lg-7 entry-panel" data-entry-panel="structured">
-      <div class="sheet">
-        <h2 class="sheet-title">Entry form</h2>
-        <p class="sheet-sub">Pick the customer, the type and the amount.</p>
+      <div class="panel-card h-100">
+        <div class="panel-head"><div><div class="eyebrow">Clear record</div><h2>Structured entry</h2><p>Choose the customer, amount and what changed.</p></div></div>
         <form id="transactionForm" novalidate>
           <div class="row g-3">
-            <div class="col-12"><label class="form-label" for="customerId">Customer</label>
-              <select id="customerId" name="customerId" class="form-select" required><option value="">Choose a customer</option><% customers.forEach(c => { %><option value="<%= c._id %>"><%= c.name %></option><% }) %></select></div>
-            <div class="col-md-6"><label class="form-label" for="txType">Type</label><select id="txType" name="type" class="form-select"><option value="credit">Credit given</option><option value="payment">Payment received</option></select></div>
-            <div class="col-md-6"><label class="form-label" for="txAmount">Amount (₹)</label><input id="txAmount" name="amount" type="number" min="0.01" step="0.01" inputmode="decimal" class="form-control" required></div>
-            <div class="col-12"><label class="form-label" for="txDescription">Details <span class="muted fw-normal">(optional)</span></label><input id="txDescription" name="description" class="form-control" maxlength="200" placeholder="2 kg sugar, 1 L oil"></div>
+            <div class="col-12"><label class="form-label" for="customerId">Customer</label><select id="customerId" name="customerId" class="form-select form-select-lg" required><option value="">Choose customer</option><% customers.forEach(c => { %><option value="<%= c._id %>"><%= c.name %></option><% }) %></select><div class="form-text">The transaction stays attached to this customer's ledger.</div></div>
+            <div class="col-md-6"><label class="form-label" for="txType">Type</label><select id="txType" name="type" class="form-select form-select-lg"><option value="credit">Credit given</option><option value="payment">Payment received</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="txAmount">Amount</label><div class="input-group input-group-lg"><span class="input-group-text">₹</span><input id="txAmount" name="amount" type="number" min="1" step="0.01" class="form-control" required></div></div>
+            <div class="col-12"><label class="form-label" for="txDescription">Description <span class="muted fw-normal">(optional)</span></label><input id="txDescription" name="description" class="form-control" maxlength="200" placeholder="3 notebooks, monthly grocery bill…"></div>
           </div>
-          <button class="btn btn-primary btn-lg mt-4">Save entry</button>
+          <button class="btn btn-primary btn-lg rounded-pill mt-4 px-4">Save transaction</button>
           <div id="txMessage" class="mt-3" aria-live="polite"></div>
         </form>
       </div>
     </div>
 
-    <div class="col-lg-5">
-      <div class="sheet">
-        <h2 class="sheet-title">New customer</h2>
-        <p class="sheet-sub">Typing a new name above adds them automatically. Use this to add a phone number for reminders.</p>
-        <form id="customerForm" novalidate>
-          <label class="form-label" for="newCustomerName">Name</label><input id="newCustomerName" name="name" class="form-control" required maxlength="80" autocomplete="off">
-          <label class="form-label mt-3" for="newCustomerPhone">Phone <span class="muted fw-normal">(optional)</span></label><input id="newCustomerPhone" name="phone" class="form-control" maxlength="20" inputmode="tel" autocomplete="off">
-          <button class="btn btn-quiet w-100 mt-3">Add customer</button>
-          <div id="customerMessage" class="mt-3" aria-live="polite"></div>
-        </form>
+    <div class="col-lg-5 entry-panel" data-entry-panel="natural">
+      <div class="panel-card natural-card h-100" id="natural">
+        <div class="eyebrow">Quick sentence</div><h2>Say it the way you would remember it.</h2>
+        <p class="muted">Write or speak it in any words – English, Hindi or a mix. Mention items, quantity and price if you like. You always get a preview before anything is saved.</p>
+        <textarea id="naturalText" class="form-control natural-input" rows="4" maxlength="400" placeholder="e.g. Ramesh took 2 kg sugar at 45 and 1 litre oil for 180, paid 100"></textarea>
+        <div class="example-chips" aria-label="Examples">
+          <button type="button" class="chip" data-example="Ramesh took 2 kg sugar at 45 and 1 litre oil for 180, paid 100">2 kg sugar at 45 + paid</button>
+          <button type="button" class="chip" data-example="Suresh paid 500 by UPI">Suresh paid 500 by UPI</button>
+          <button type="button" class="chip" data-example="Anita ne 3 notebook 40 each liya aur 50 jama kiya">Hinglish works too</button>
+          <button type="button" class="chip" data-example="Kumar took groceries for 1,200 yesterday">Groceries for 1,200 yesterday</button>
+        </div>
+        <button id="parseNatural" class="btn btn-dark btn-lg w-100 rounded-pill mt-3">Review entry</button>
+        <div id="naturalResult" class="mt-3" aria-live="polite"></div>
       </div>
     </div>
   </div>
-</main>
-<%- include('../partials/footer') %>
+
+  <div class="row g-4 mt-1">
+    <div class="col-lg-5 ms-auto"><div class="panel-card"><div class="eyebrow">New customer</div><h2>Add someone once.</h2><p class="muted">Their account becomes available for future entries.</p><form id="customerForm"><label class="form-label" for="newCustomerName">Name</label><input id="newCustomerName" name="name" class="form-control" required maxlength="80"><label class="form-label mt-3" for="newCustomerPhone">Phone <span class="muted fw-normal">(optional)</span></label><input id="newCustomerPhone" name="phone" class="form-control" maxlength="20"><button class="btn btn-soft w-100 rounded-pill mt-3">Add customer</button><div id="customerMessage" class="mt-3" aria-live="polite"></div></form></div></div>
+  </div>
+</main><%- include('../partials/footer') %>

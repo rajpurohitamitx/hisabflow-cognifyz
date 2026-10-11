@@ -1,4 +1,4 @@
-# HisabFlow — Vercel deployment (Tasks 1–6)
+# HisaabFlow — Vercel deployment (Tasks 1–6)
 
 This repository is **one Express application** containing Cognifyz Tasks 1–6. Do not deploy each task separately.
 

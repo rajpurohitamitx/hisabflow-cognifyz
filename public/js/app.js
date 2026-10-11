@@ -1,191 +1,224 @@
 (() => {
   const money = (value) => `₹${Number(value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
-  const $ = (sel, root = document) => root.querySelector(sel);
-
-  function el(tag, props = {}, ...children) {
-    const node = document.createElement(tag);
-    Object.entries(props).forEach(([k, v]) => { if (k === 'class') node.className = v; else if (k === 'text') node.textContent = v; else node.setAttribute(k, v); });
-    children.flat().forEach(c => c != null && node.append(c));
-    return node;
-  }
 
   function message(target, text, type = 'success') {
     if (!target) return;
-    target.replaceChildren(el('div', { class: `msg msg-${type}`, role: type === 'danger' ? 'alert' : 'status', text }));
+    target.replaceChildren();
+    const box = document.createElement('div');
+    box.className = `alert alert-${type} py-2 mb-0`;
+    box.textContent = text;
+    target.appendChild(box);
   }
 
   async function readJson(response) {
     const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('application/json')) throw new Error(response.status === 401 ? 'Your session has ended. Please sign in again.' : 'The server returned an unexpected response. Please try again.');
+    if (!contentType.includes('application/json')) throw new Error('The server returned an unexpected response. Please try again.');
     const body = await response.json();
-    if (!response.ok) {
-      if (response.status === 401) throw new Error('Your session has ended. Please sign in again.');
-      throw new Error(body.error || 'Something went wrong.');
-    }
+    if (!response.ok) throw new Error(body.error || 'Something went wrong.');
     return body;
   }
-  const postJson = (url, data, method = 'POST') => fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(readJson);
 
-  function busy(button, text) {
-    const original = button.textContent;
-    button.disabled = true;
-    button.replaceChildren(el('span', { class: 'spinner-dot', 'aria-hidden': 'true' }), text);
-    return () => { button.disabled = false; button.textContent = original; };
-  }
-
-  // ---- Task 4: tiny hash router for the two entry modes (no page reload) -------------------------
-  const tabs = document.querySelectorAll('[data-entry-route]');
-  const panels = document.querySelectorAll('[data-entry-panel]');
+  // Task 4: a small hash router keeps the two entry modes switchable without a page reload.
+  const entryTabs = document.querySelectorAll('[data-entry-route]');
+  const entryPanels = document.querySelectorAll('[data-entry-panel]');
   function setEntryRoute() {
-    if (!tabs.length) return;
-    const route = window.location.hash === '#structured' ? 'structured' : 'natural';
-    tabs.forEach(t => { const on = t.dataset.entryRoute === route; t.classList.toggle('active', on); if (on) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
-    panels.forEach(p => p.classList.toggle('d-none', p.dataset.entryPanel !== route));
+    if (!entryTabs.length) return;
+    const route = window.location.hash === '#natural' ? 'natural' : 'structured';
+    entryTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.entryRoute === route));
+    entryPanels.forEach(panel => panel.classList.toggle('d-none', panel.dataset.entryPanel !== route));
   }
+  entryTabs.forEach(tab => tab.addEventListener('click', () => setTimeout(setEntryRoute, 0)));
   window.addEventListener('hashchange', setEntryRoute);
   setEntryRoute();
 
-  // ---- Task 4: password strength + validation ----------------------------------------------------
-  const password = $('#password');
-  const strengthBar = $('#strengthBar');
-  const strengthText = $('#strengthText');
-  const rules = (v) => ({ length: v.length >= 8, upper: /[A-Z]/.test(v), digit: /[0-9]/.test(v) });
-  if (password && strengthBar) {
+  const password = document.querySelector('#password');
+  const strengthBar = document.querySelector('#strengthBar');
+  const strengthText = document.querySelector('#strengthText');
+  if (password) {
     password.addEventListener('input', () => {
-      const v = password.value;
-      const r = rules(v);
-      const score = [r.length, r.upper, r.digit, /[^A-Za-z0-9]/.test(v)].filter(Boolean).length;
-      strengthBar.style.width = `${score * 25}%`;
+      const value = password.value;
+      let score = 0;
+      if (value.length >= 8) score++;
+      if (/[A-Z]/.test(value)) score++;
+      if (/[0-9]/.test(value)) score++;
+      if (/[^A-Za-z0-9]/.test(value)) score++;
+      const widths = [0, 25, 50, 75, 100];
+      strengthBar.style.width = `${widths[score]}%`;
+      strengthText.textContent = ['Use 8+ characters with a capital letter and number.', 'Weak', 'Fair', 'Good', 'Strong'][score];
       strengthBar.classList.toggle('is-strong', score >= 4);
-      const missing = [!r.length && '8+ characters', !r.upper && 'a capital letter', !r.digit && 'a number'].filter(Boolean);
-      strengthText.textContent = v ? (missing.length ? `Still needs ${missing.join(', ')}.` : (score === 4 ? 'Strong password.' : 'Good. Add a symbol to make it stronger.')) : 'At least 8 characters, with a capital letter and a number.';
     });
   }
-  const registerForm = $('#registerForm');
+
+  const registerForm = document.querySelector('#registerForm');
   if (registerForm) registerForm.addEventListener('submit', (event) => {
-    const f = registerForm.elements;
-    const problem = !f.shopName.value.trim() || !f.ownerName.value.trim() ? 'Please enter your shop name and your name.'
-      : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim()) ? 'Enter a valid email address.'
-      : Object.values(rules(f.password.value)).includes(false) ? 'Use at least 8 characters, one capital letter and one number.' : '';
-    if (problem) { event.preventDefault(); message($('#registerAlert'), problem, 'danger'); }
+    const value = password?.value || '';
+    if (value.length < 8 || !/[A-Z]/.test(value) || !/[0-9]/.test(value)) {
+      event.preventDefault();
+      message(document.querySelector('#registerAlert') || document.querySelector('#strengthText'), 'Use at least 8 characters, one capital letter and one number.', 'danger');
+    }
   });
 
-  const search = $('#customerSearch');
-  if (search) search.addEventListener('input', () => {
-    const q = search.value.trim().toLowerCase();
-    document.querySelectorAll('#customerRows tr').forEach(row => { row.hidden = !row.textContent.toLowerCase().includes(q); });
+  const customerSearch = document.querySelector('#customerSearch');
+  if (customerSearch) customerSearch.addEventListener('input', () => {
+    const query = customerSearch.value.trim().toLowerCase();
+    document.querySelectorAll('#customerRows tr').forEach(row => {
+      row.hidden = !row.textContent.toLowerCase().includes(query);
+    });
   });
 
-  // ---- Task 5: structured entry via the REST API -------------------------------------------------
-  const txForm = $('#transactionForm');
+  const txForm = document.querySelector('#transactionForm');
   if (txForm) txForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const out = $('#txMessage');
+    if (!txForm.reportValidity()) return;
     const amount = Number(txForm.elements.amount.value);
-    if (!txForm.elements.customerId.value) return message(out, 'Choose a customer first.', 'danger');
-    if (!Number.isFinite(amount) || amount <= 0) return message(out, 'Enter an amount greater than ₹0.', 'danger');
-    const done = busy(txForm.querySelector('button'), 'Saving…');
+    if (!Number.isFinite(amount) || amount <= 0) return message(document.querySelector('#txMessage'), 'Enter an amount greater than ₹0.', 'danger');
+
     try {
-      const body = await postJson('/api/transactions', Object.fromEntries(new FormData(txForm)));
-      const name = txForm.elements.customerId.selectedOptions[0].textContent;
-      message(out, `${body.transaction.type === 'credit' ? 'Credit' : 'Payment'} of ${money(body.transaction.amount)} saved for ${name}.`);
+      const body = await readJson(await fetch('/api/transactions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(new FormData(txForm)))
+      }));
+      message(document.querySelector('#txMessage'), `Saved ${money(body.transaction.amount)} ${body.transaction.type === 'credit' ? 'credit' : 'payment'}.`);
       txForm.reset();
-    } catch (error) { message(out, error.message, 'danger'); }
-    finally { done(); }
+    } catch (error) { message(document.querySelector('#txMessage'), error.message, 'danger'); }
   });
 
-  const customerForm = $('#customerForm');
+  const customerForm = document.querySelector('#customerForm');
   if (customerForm) customerForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const out = $('#customerMessage');
+    if (!customerForm.reportValidity()) return;
     const name = customerForm.elements.name.value.trim();
-    if (name.length < 2) return message(out, 'Enter a name with at least 2 characters.', 'danger');
-    const done = busy(customerForm.querySelector('button'), 'Adding…');
+    if (name.length < 2) return message(document.querySelector('#customerMessage'), 'Enter a customer name with at least 2 characters.', 'danger');
+
     try {
-      const { customer } = await postJson('/api/customers', { name, phone: customerForm.elements.phone.value });
-      const select = $('#customerId');
-      if (select) { select.append(el('option', { value: customer._id, text: customer.name })); select.value = customer._id; }
-      message(out, `${customer.name} was added and is selected in the form.`);
+      const body = await readJson(await fetch('/api/customers', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(new FormData(customerForm)))
+      }));
+      message(document.querySelector('#customerMessage'), `${body.customer.name} was added. Refresh the entry list when you are ready to record a transaction.`);
       customerForm.reset();
-    } catch (error) { message(out, error.message, 'danger'); }
-    finally { done(); }
+    } catch (error) { message(document.querySelector('#customerMessage'), error.message, 'danger'); }
   });
 
-  // ---- Natural-language entry --------------------------------------------------------------------
-  const textarea = $('#naturalText');
-  document.querySelectorAll('.example-chip').forEach(chip => chip.addEventListener('click', () => { textarea.value = chip.textContent; textarea.focus(); }));
+  document.querySelectorAll('[data-example]').forEach(chip => chip.addEventListener('click', () => {
+    const box = document.querySelector('#naturalText');
+    if (box) { box.value = chip.dataset.example; box.focus(); }
+  }));
 
-  function renderPreview(body, result) {
-    const head = el('h3', { text: 'Check this before saving' });
-    const who = el('p', { class: 'who', text: `${body.customer} · ${body.knownCustomer ? 'existing customer' : 'new customer, will be added to your list'}` });
-    const nodes = [head, who];
+  const naturalBox = document.querySelector('#naturalText');
+  if (naturalBox) naturalBox.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) document.querySelector('#parseNatural').click();
+  });
 
-    if (body.items.length) {
-      const rows = body.items.map(i => el('tr', {},
-        el('td', { text: i.name }),
-        el('td', { class: 'num', text: i.qty ? `${i.qty}${i.unit ? ' ' + i.unit : ''}` : '—' }),
-        el('td', { class: 'num', text: i.price != null && i.qty !== 1 ? money(i.price) : '—' }),
-        el('td', { class: 'num', text: i.total != null ? money(i.total) : '—' })));
-      nodes.push(el('table', {},
-        el('thead', {}, el('tr', {}, el('th', { text: 'Item' }), el('th', { class: 'num', text: 'Qty' }), el('th', { class: 'num', text: 'Rate' }), el('th', { class: 'num', text: 'Amount' }))),
-        el('tbody', {}, rows)));
-    }
-    const foot = [];
-    if (body.credit) foot.push(el('tr', {}, el('td', { text: 'Credit given' }), el('td', { class: 'num' }, el('span', { class: 'amt amt-credit', text: `+${money(body.credit)}` }))));
-    if (body.payment) foot.push(el('tr', {}, el('td', { text: 'Payment received' }), el('td', { class: 'num' }, el('span', { class: 'amt amt-payment', text: `\u2212${money(body.payment)}` }))));
-    if (body.credit && body.payment) foot.push(el('tr', {}, el('td', { text: 'Added to balance' }), el('td', { class: 'num', text: money(body.net) })));
-    nodes.push(el('table', {}, el('tbody', {}, foot)));
-    (body.warnings || []).forEach(w => nodes.push(el('div', { class: 'note', text: w })));
-
-    const confirm = el('button', { type: 'button', class: 'btn btn-primary', text: 'Save entry' });
-    const edit = el('button', { type: 'button', class: 'btn btn-quiet', text: 'Change sentence' });
-    edit.addEventListener('click', () => { result.replaceChildren(); textarea.focus(); });
-    confirm.addEventListener('click', async () => {
-      const done = busy(confirm, 'Saving…');
-      try {
-        const saved = await postJson('/api/natural-language/save', { draftId: body.draftId });
-        const link = el('a', { href: `/customers/${saved.customer._id}`, text: `Open ${saved.customer.name}’s ledger` });
-        result.replaceChildren(el('div', { class: 'msg msg-success' }, `Saved. `, link, '.'));
-        textarea.value = '';
-      } catch (error) { done(); message(result, error.message, 'danger'); }
-    });
-    nodes.push(el('div', { class: 'actions' }, confirm, edit));
-    result.replaceChildren(el('div', { class: 'preview' }, nodes));
-    result.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
-
-  const parseButton = $('#parseNatural');
+  const parseButton = document.querySelector('#parseNatural');
   if (parseButton) parseButton.addEventListener('click', async () => {
-    const result = $('#naturalResult');
-    const text = textarea.value.trim();
-    if (!text) return message(result, 'Type the entry first, for example “Meena took 2 kg sugar at 45 and paid 50”.', 'danger');
-    const done = busy(parseButton, 'Reading…');
-    try { renderPreview(await postJson('/api/natural-language/parse', { text }), result); }
-    catch (error) { message(result, error.message, 'danger'); }
-    finally { done(); }
-  });
-  if (textarea) textarea.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') parseButton.click(); });
+    const input = document.querySelector('#naturalText');
+    const result = document.querySelector('#naturalResult');
+    const text = input.value.trim();
+    if (!text) return message(result, 'Write the transaction in one sentence first.', 'danger');
 
-  // ---- Edit / delete on the customer ledger ------------------------------------------------------
-  const modalEl = $('#txModal');
-  if (modalEl && window.bootstrap) {
-    const modal = new bootstrap.Modal(modalEl);
-    const fType = $('#txType'), fAmount = $('#txAmount'), fNote = $('#txNote'), fErr = $('#txError');
+    result.replaceChildren();
+    result.textContent = 'Reading entry…';
+    try {
+      const body = await readJson(await fetch('/api/natural-language/parse', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text })
+      }));
+
+      const card = document.createElement('div');
+      card.className = 'parse-card';
+      const title = document.createElement('strong');
+      title.textContent = 'Review before saving';
+      card.appendChild(title);
+
+      // Customer (editable, in case the sentence was read wrongly)
+      const nameWrap = document.createElement('label');
+      nameWrap.className = 'parse-name';
+      const nameLabel = document.createElement('small');
+      nameLabel.textContent = body.existingCustomer ? 'Customer (existing)' : 'Customer (new – will be added)';
+      const nameInput = document.createElement('input');
+      nameInput.className = 'form-control form-control-sm';
+      nameInput.value = body.customer; nameInput.maxLength = 80; nameInput.setAttribute('aria-label', 'Customer name');
+      nameWrap.append(nameLabel, nameInput);
+      card.appendChild(nameWrap);
+
+      if (body.items && body.items.length) {
+        const list = document.createElement('div');
+        list.className = 'parse-items';
+        body.items.forEach(item => {
+          const row = document.createElement('div');
+          row.className = 'parse-item';
+          const left = document.createElement('span');
+          const qty = item.qty && (item.qty !== 1 || item.unit) ? `${item.qty}${item.unit ? ' ' + item.unit : ''} × ` : '';
+          left.textContent = `${qty}${item.name}`;
+          const right = document.createElement('b');
+          right.textContent = item.total === null ? '—' : money(item.total);
+          if (item.price !== null && item.qty && item.qty !== 1) { const sm = document.createElement('small'); sm.textContent = `@ ${money(item.price)}`; left.appendChild(sm); }
+          row.append(left, right); list.appendChild(row);
+        });
+        card.appendChild(list);
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'parse-grid';
+      const cells = [];
+      if (body.credit > 0) cells.push(['Credit given', `+${money(body.credit)}`, 'text-credit']);
+      if (body.payment > 0) cells.push(['Payment received', `\u2212${money(body.payment)}`, 'text-payment']);
+      cells.push(['Net change', `${body.net < 0 ? '\u2212' : '+'}${money(Math.abs(body.net))}`, '']);
+      if (body.occurredAt) cells.push(['Date', new Date(body.occurredAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }), '']);
+      cells.forEach(([label, value, cls]) => {
+        const cell = document.createElement('div');
+        const small = document.createElement('small'); small.textContent = label;
+        const strong = document.createElement('strong'); strong.textContent = value; if (cls) strong.className = cls;
+        cell.append(small, strong); grid.appendChild(cell);
+      });
+      card.appendChild(grid);
+
+      (body.hints || []).forEach(h => { const p = document.createElement('p'); p.className = 'parse-hint'; p.textContent = h; card.appendChild(p); });
+
+      const confirm = document.createElement('button');
+      confirm.className = 'btn btn-primary btn-sm rounded-pill w-100';
+      confirm.textContent = 'Confirm & save';
+      confirm.addEventListener('click', async () => {
+        confirm.disabled = true;
+        try {
+          const saved = await readJson(await fetch('/api/natural-language/save', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ draftId: body.draftId, customer: nameInput.value.trim() })
+          }));
+          result.replaceChildren();
+          input.value = '';
+          message(result, `Saved for ${saved.customer.name}. Open the customer ledger to see the full history.`);
+        } catch (error) {
+          confirm.disabled = false;
+          message(result, error.message, 'danger');
+        }
+      });
+      card.appendChild(confirm);
+      result.replaceChildren(card);
+    } catch (error) { message(result, error.message, 'danger'); }
+  });
+
+  // Edit / delete an entry on the customer ledger
+  const txModalEl = document.querySelector('#txModal');
+  if (txModalEl && window.bootstrap) {
+    const modal = new bootstrap.Modal(txModalEl);
+    const fType = document.querySelector('#txType'), fAmount = document.querySelector('#txAmount'), fNote = document.querySelector('#txNote'), fErr = document.querySelector('#txError');
     let editingId = null;
     document.querySelectorAll('.tx-edit').forEach(btn => btn.addEventListener('click', () => {
       editingId = btn.dataset.id; fType.value = btn.dataset.type; fAmount.value = btn.dataset.amount; fNote.value = btn.dataset.note || '';
       fErr.replaceChildren(); modal.show();
     }));
-    $('#txSave').addEventListener('click', async (event) => {
-      const save = event.currentTarget;
-      const amount = Number(fAmount.value);
-      if (!Number.isFinite(amount) || amount <= 0) return message(fErr, 'Enter an amount greater than ₹0.', 'danger');
-      const done = busy(save, 'Saving…');
-      try { await postJson(`/api/transactions/${editingId}`, { type: fType.value, amount: fAmount.value, description: fNote.value }, 'PUT'); window.location.reload(); }
-      catch (error) { done(); message(fErr, error.message, 'danger'); }
+    document.querySelector('#txSave').addEventListener('click', async (event) => {
+      const save = event.currentTarget; save.disabled = true;
+      try {
+        await readJson(await fetch(`/api/transactions/${editingId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: fType.value, amount: fAmount.value, description: fNote.value })
+        }));
+        window.location.reload();
+      } catch (error) { save.disabled = false; message(fErr, error.message, 'danger'); }
     });
     document.querySelectorAll('.tx-delete').forEach(btn => btn.addEventListener('click', async () => {
-      if (!window.confirm(`Delete this ${money(btn.dataset.amount)} entry? This cannot be undone.`)) return;
+      if (!window.confirm(`Delete this ₹${Number(btn.dataset.amount).toLocaleString('en-IN')} entry? This cannot be undone.`)) return;
       btn.disabled = true;
       try { await readJson(await fetch(`/api/transactions/${btn.dataset.id}`, { method: 'DELETE' })); window.location.reload(); }
       catch (error) { btn.disabled = false; window.alert(error.message); }

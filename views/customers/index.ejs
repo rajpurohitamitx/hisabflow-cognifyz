@@ -1,24 +1,8 @@
 <%- include('../partials/head') %><%- include('../partials/nav') %>
 <main class="container-fluid px-3 px-lg-4 py-4 app-main">
-  <div class="page-head"><div><h1 class="page-title">Customers</h1><p class="page-lead"><%= customers.length %> in your khata.</p></div><a href="/entry" class="btn btn-primary">Add entry</a></div>
-  <div class="sheet">
-    <div class="search-row"><label class="visually-hidden" for="customerSearch">Search customers</label><input id="customerSearch" class="form-control" type="search" placeholder="Search by name or phone"></div>
-    <% if (!customers.length) { %><div class="empty">No customers yet. They’re added automatically when you type an entry, or you can add one on the entry desk.</div><% } else { %>
-    <div class="table-wrap"><table class="ledger-table">
-      <thead><tr><th>Customer</th><th class="col-hide-sm">Phone</th><th class="num">Balance</th><th>Status</th><th></th></tr></thead>
-      <tbody id="customerRows">
-        <% customers.forEach(c => { %>
-          <tr>
-            <td><div class="cell-name"><span class="avatar" aria-hidden="true"><%= c.name.slice(0, 1).toUpperCase() %></span><div><b><%= c.name %></b><% if (c.notes) { %><small><%= c.notes %></small><% } %></div></div></td>
-            <td class="col-hide-sm"><%= c.phone || '—' %></td>
-            <td class="num"><strong><%= inr(c.balance) %></strong></td>
-            <td><span class="status <%= c.balance > 0 ? 'status-pending' : 'status-settled' %>"><%= c.balance > 0 ? 'Pending' : 'Settled' %></span></td>
-            <td class="num"><a href="/customers/<%= c._id %>">Open ledger</a></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table></div>
-    <% } %>
-  </div>
-</main>
-<%- include('../partials/footer') %>
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4"><div><div class="eyebrow">Ledger</div><h1 class="page-title">Customers</h1><p class="muted mb-0">Every account stays inside your shop.</p></div><a href="/entry" class="btn btn-primary rounded-pill px-4">+ Add transaction</a></div>
+  <div class="panel-card"><div class="search-row"><input id="customerSearch" class="form-control" placeholder="Search customers…"><span class="muted"><%= customers.length %> active</span></div>
+  <div class="table-responsive"><table class="table app-table align-middle"><thead><tr><th>Customer</th><th>Phone</th><th>Balance</th><th>State</th><th></th></tr></thead><tbody id="customerRows">
+  <% customers.forEach(c => { %><tr><td><div class="customer-cell"><span class="avatar"><%= c.name.slice(0,1).toUpperCase() %></span><div><b><%= c.name %></b><small><%= c.notes || 'No notes' %></small></div></div></td><td><%= c.phone || '—' %></td><td><strong>₹<%= c.balance.toLocaleString('en-IN') %></strong></td><td><span class="status-pill <%= c.balance > 0 ? 'status-warning' : 'status-good' %>"><%= c.balance > 0 ? 'Pending' : 'Settled' %></span></td><td class="text-end"><a href="/customers/<%= c._id %>" class="btn btn-sm btn-soft">Open ledger</a></td></tr><% }) %>
+  </tbody></table></div></div>
+</main><%- include('../partials/footer') %>

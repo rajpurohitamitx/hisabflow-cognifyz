@@ -6,12 +6,8 @@ const Customer = require('../models/Customer');
 const Transaction = require('../models/Transaction');
 
 async function seed() {
-  if (process.env.NODE_ENV === 'production') throw new Error('Refusing to seed while NODE_ENV=production.');
   await mongoose.connect(process.env.MONGODB_URI);
-  // Only the demo shop is reset; real accounts are never touched.
-  const demoEmail = process.env.ADMIN_EMAIL || 'demo@hisabflow.local';
-  const old = await Shop.findOne({ email: demoEmail });
-  if (old) await Promise.all([Transaction.deleteMany({ shopId: old._id }), Customer.deleteMany({ shopId: old._id }), Shop.deleteOne({ _id: old._id })]);
+  await Promise.all([Shop.deleteMany({}), Customer.deleteMany({}), Transaction.deleteMany({})]);
   const shop = await Shop.create({ name: 'Green Basket Stores', ownerName: 'Ananya', email: process.env.ADMIN_EMAIL || 'demo@hisabflow.local', passwordHash: await bcrypt.hash(process.env.ADMIN_PASSWORD || 'DemoPass123!', 12), phone: '+919999999999' });
   const people = await Customer.insertMany([
     { shopId: shop._id, name: 'Ramesh', phone: '+919876543210', notes: 'Regular customer' },

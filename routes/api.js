@@ -3,34 +3,19 @@ const mongoose = require('mongoose');
 const Customer = require('../models/Customer');
 const Transaction = require('../models/Transaction');
 const { requireApiAuth } = require('../middleware/auth');
-const { rateLimit } = require('../middleware/rateLimit');
 const { getFollowUps } = require('../services/followUps');
-const { parseTransaction, describeItems } = require('../services/naturalLanguage');
-const { createDraft, getDraft } = require('../services/draftStore');
-const { customerBalance } = require('../services/balances');
+const { parseTransaction } = require('../services/naturalLanguage');
+const { createDraft, getDraft, removeDraft } = require('../services/draftStore');
 
 const router = express.Router();
 router.use(requireApiAuth);
-router.use(rateLimit({ windowMs: 60 * 1000, max: 120, key: (req) => `api:${req.shop._id}` }));
 
-const MAX_AMOUNT = 10000000;
-const validId = (id) => typeof id === 'string' && mongoose.isValidObjectId(id);
-const cleanText = (value, max = 200) => (typeof value === 'string' ? value : '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max);
-function positiveAmount(value) {
-  const n = Number(value);
-  return Number.isFinite(n) && n > 0 && n <= MAX_AMOUNT ? Math.round(n * 100) / 100 : null;
-}
-function parseDate(value) {
-  if (value === undefined || value === null || value === '') return undefined;
-  const d = new Date(value);
-  const t = d.getTime();
-  return Number.isNaN(t) || t > Date.now() + 86400000 ? null : d;
-}
-const nameRegex = (name) => new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+function validId(id) { return mongoose.isValidObjectId(id); }
+function positiveAmount(value) { const n = Number(value); return Number.isFinite(n) && n > 0 ? n : null; }
+function cleanText(value, max = 200) { return String(value || '').trim().slice(0, max); }
 
 router.get('/me', (req, res) => res.json({ shop: { id: req.shop._id, name: req.shop.name, ownerName: req.shop.ownerName, email: req.shop.email } }));
 
-// ---- Customers -------------------------------------------------------------------------------
 router.get('/customers', async (req, res) => {
   const customers = await Customer.find({ shopId: req.shop._id, archived: false }).sort({ name: 1 }).lean();
   res.json({ customers });
@@ -38,9 +23,10 @@ router.get('/customers', async (req, res) => {
 
 router.post('/customers', async (req, res) => {
   const name = cleanText(req.body.name, 80);
+  const phone = cleanText(req.body.phone, 20);
+  const notes = cleanText(req.body.notes, 300);
   if (name.length < 2) return res.status(400).json({ error: 'Customer name must be at least 2 characters.' });
-  if (await Customer.exists({ shopId: req.shop._id, archived: false, name: nameRegex(name) })) return res.status(409).json({ error: `${name} is already in your customer list.` });
-  const customer = await Customer.create({ shopId: req.shop._id, name, phone: cleanText(req.body.phone, 20), notes: cleanText(req.body.notes, 300) });
+  const customer = await Customer.create({ shopId: req.shop._id, name, phone, notes });
   res.status(201).json({ customer });
 });
 
@@ -48,7 +34,6 @@ router.put('/customers/:id', async (req, res) => {
   if (!validId(req.params.id)) return res.status(400).json({ error: 'Invalid customer id.' });
   const name = cleanText(req.body.name, 80);
   if (name.length < 2) return res.status(400).json({ error: 'Customer name must be at least 2 characters.' });
-  if (await Customer.exists({ shopId: req.shop._id, archived: false, name: nameRegex(name), _id: { $ne: req.params.id } })) return res.status(409).json({ error: `${name} is already in your customer list.` });
   const customer = await Customer.findOneAndUpdate(
     { _id: req.params.id, shopId: req.shop._id, archived: false },
     { $set: { name, phone: cleanText(req.body.phone, 20), notes: cleanText(req.body.notes, 300) } },
@@ -73,31 +58,26 @@ router.get('/customers/:id/transactions', async (req, res) => {
   res.json({ customer, transactions });
 });
 
-// ---- Transactions ----------------------------------------------------------------------------
 router.post('/transactions', async (req, res) => {
-  const customerId = typeof req.body.customerId === 'string' ? req.body.customerId : '';
-  const type = typeof req.body.type === 'string' ? req.body.type : '';
+  const customerId = String(req.body.customerId || '');
+  const type = String(req.body.type || '');
   const value = positiveAmount(req.body.amount);
-  if (!validId(customerId) || !['credit', 'payment'].includes(type) || !value) return res.status(400).json({ error: 'Choose a customer, a transaction type and an amount between ₹0.01 and ₹1,00,00,000.' });
-  const occurredAt = parseDate(req.body.occurredAt);
-  if (occurredAt === null) return res.status(400).json({ error: 'That date is not valid.' });
+  if (!validId(customerId) || !['credit', 'payment'].includes(type) || !value) return res.status(400).json({ error: 'Choose a customer, transaction type and a positive amount.' });
 
   const customer = await Customer.findOne({ _id: customerId, shopId: req.shop._id, archived: false });
   if (!customer) return res.status(404).json({ error: 'Customer not found.' });
 
-  const tx = await Transaction.create({ shopId: req.shop._id, customerId, type, amount: value, description: cleanText(req.body.description), occurredAt: occurredAt || new Date(), source: 'manual' });
+  const tx = await Transaction.create({ shopId: req.shop._id, customerId, type, amount: value, description: cleanText(req.body.description), occurredAt: req.body.occurredAt || Date.now(), source: 'manual' });
   res.status(201).json({ transaction: tx });
 });
 
 router.put('/transactions/:id', async (req, res) => {
   if (!validId(req.params.id)) return res.status(400).json({ error: 'Invalid transaction id.' });
   const value = positiveAmount(req.body.amount);
-  if (!['credit', 'payment'].includes(req.body.type) || !value) return res.status(400).json({ error: 'A valid type and an amount above ₹0 are required.' });
-  const occurredAt = parseDate(req.body.occurredAt);
-  if (occurredAt === null) return res.status(400).json({ error: 'That date is not valid.' });
+  if (!['credit', 'payment'].includes(req.body.type) || !value) return res.status(400).json({ error: 'Valid type and positive amount are required.' });
   const tx = await Transaction.findOneAndUpdate(
     { _id: req.params.id, shopId: req.shop._id },
-    { $set: { type: req.body.type, amount: value, description: cleanText(req.body.description), ...(occurredAt ? { occurredAt } : {}) } },
+    { $set: { type: req.body.type, amount: value, description: cleanText(req.body.description), ...(req.body.occurredAt && !Number.isNaN(new Date(req.body.occurredAt).getTime()) ? { occurredAt: new Date(req.body.occurredAt) } : {}) } },
     { new: true, runValidators: true }
   );
   if (!tx) return res.status(404).json({ error: 'Transaction not found.' });
@@ -111,7 +91,6 @@ router.delete('/transactions/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
-// ---- Insights --------------------------------------------------------------------------------
 router.get('/follow-ups', async (req, res) => res.json({ followUps: await getFollowUps(req.shop._id) }));
 
 router.get('/dashboard', async (req, res) => {
@@ -124,40 +103,57 @@ router.get('/dashboard', async (req, res) => {
   res.json({ credit: map.credit || 0, payments: map.payment || 0, outstanding: Math.max(0, (map.credit || 0) - (map.payment || 0)), attention: followUps.filter(x => x.level !== 'healthy').length, followUps });
 });
 
-// ---- Natural-language entry ------------------------------------------------------------------
-const parseLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, message: 'Too many entries in a minute. Please slow down.', key: (req) => `nl:${req.shop._id}` });
+async function outstandingFor(shopId, customerId) {
+  const rows = await Transaction.aggregate([{ $match: { shopId, customerId } }, { $group: { _id: '$type', total: { $sum: '$amount' } } }]);
+  const map = Object.fromEntries(rows.map(x => [x._id, x.total]));
+  return Math.max(0, (map.credit || 0) - (map.payment || 0));
+}
 
-router.post('/natural-language/parse', parseLimiter, async (req, res) => {
-  const customers = await Customer.find({ shopId: req.shop._id, archived: false }).select('name').lean();
-  const parsed = parseTransaction(typeof req.body.text === 'string' ? req.body.text : '', customers.map(c => c.name));
+function findCustomer(shopId, name) {
+  return Customer.findOne({ shopId, name: new RegExp(`^${String(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'), archived: false });
+}
+
+router.post('/natural-language/parse', async (req, res) => {
+  const existing = await Customer.find({ shopId: req.shop._id, archived: false }).select('name').lean();
+  const parsed = parseTransaction(req.body.text, { customers: existing.map(c => c.name) });
   if (!parsed.ok) return res.status(400).json(parsed);
 
-  const match = customers.find(c => c.name.toLowerCase() === parsed.customer.toLowerCase());
-  parsed.knownCustomer = Boolean(match);
-
   if (parsed.settleAll) {
-    const balance = match ? await customerBalance(req.shop._id, match._id) : 0;
-    if (balance <= 0) return res.status(400).json({ ok: false, error: `${parsed.customer} has nothing outstanding right now, so there is nothing to settle.` });
-    parsed.payment = balance;
-    parsed.net = -balance;
-    parsed.warnings.push(`Settling the full outstanding balance of ₹${balance.toLocaleString('en-IN')}.`);
+    const customer = await findCustomer(req.shop._id, parsed.customer);
+    const due = customer ? await outstandingFor(req.shop._id, customer._id) : 0;
+    if (!due) return res.status(400).json({ ok: false, error: `${parsed.customer} has nothing outstanding to settle.` });
+    parsed.payment = due;
+    parsed.net = Math.round((parsed.credit - due) * 100) / 100;
+    parsed.hints.push(`“Paid in full” was read as the full outstanding amount (₹${due.toLocaleString('en-IN')}).`);
   }
+
   const draftId = createDraft(req.shop._id, parsed);
-  res.json({ ...parsed, draftId });
+  res.json({ ...parsed, draftId, existingCustomer: parsed.customerKnown });
 });
 
 router.post('/natural-language/save', async (req, res) => {
-  const parsed = getDraft(req.shop._id, req.body.draftId);
+  const parsed = getDraft(req.shop._id, String(req.body.draftId || ''));
   if (!parsed) return res.status(400).json({ error: 'This preview has expired. Review the sentence again.' });
 
-  let customer = await Customer.findOne({ shopId: req.shop._id, name: nameRegex(parsed.customer), archived: false });
-  if (!customer) customer = await Customer.create({ shopId: req.shop._id, name: parsed.customer.slice(0, 80) });
+  const customerName = cleanText(req.body.customer || parsed.customer, 80);
+  if (customerName.length < 2) return res.status(400).json({ error: 'Customer name must be at least 2 characters.' });
+
+  let customer = await findCustomer(req.shop._id, customerName);
+  if (!customer) customer = await Customer.create({ shopId: req.shop._id, name: customerName });
 
   const occurredAt = parsed.occurredAt ? new Date(parsed.occurredAt) : new Date();
+  const method = parsed.method ? ` (${parsed.method})` : '';
   const docs = [];
-  if (parsed.credit > 0) docs.push({ shopId: req.shop._id, customerId: customer._id, type: 'credit', amount: parsed.credit, description: describeItems(parsed.items) || 'Credit entry', items: parsed.items.map(i => ({ name: i.name, qty: i.qty, unit: i.unit, price: i.price, total: i.total })), occurredAt, source: 'natural-language' });
-  if (parsed.payment > 0) docs.push({ shopId: req.shop._id, customerId: customer._id, type: 'payment', amount: parsed.payment, description: 'Payment received', occurredAt, source: 'natural-language' });
+  if (parsed.credit > 0) {
+    docs.push({
+      shopId: req.shop._id, customerId: customer._id, type: 'credit', amount: parsed.credit, occurredAt, source: 'natural-language',
+      description: cleanText(parsed.description || 'Credit'),
+      items: (parsed.items || []).map(i => ({ name: i.name, qty: i.qty, unit: i.unit, price: i.price, total: i.total }))
+    });
+  }
+  if (parsed.payment > 0) docs.push({ shopId: req.shop._id, customerId: customer._id, type: 'payment', amount: parsed.payment, occurredAt, source: 'natural-language', description: `Payment${method}` });
   const transactions = await Transaction.insertMany(docs);
+  removeDraft(req.body.draftId);
   res.status(201).json({ customer, transactions, parsed });
 });
 
